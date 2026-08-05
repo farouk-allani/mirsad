@@ -49,6 +49,40 @@ const EnvSchema = z.object({
   ),
 
   /**
+   * KeeperHub workflow wrapping the Safe plugin's `safe/get-pending-transactions`.
+   * Preferred queue source: the credential and the run log stay in KeeperHub.
+   */
+  MIRSAD_QUEUE_WORKFLOW_ID: optional(z.string().min(1)),
+
+  /**
+   * Safe Transaction Service key, for the direct fallback source. Only needed
+   * when MIRSAD_QUEUE_WORKFLOW_ID is unset. From developer.safe.global.
+   */
+  SAFE_API_KEY: optional(z.string().min(1)),
+
+  /**
+   * RPC used to read the Safe's native balance each tick. Without it the
+   * proportional value checks cannot fire, and a drain reads as an ordinary
+   * payment — so this is not optional in practice, only in configuration.
+   */
+  MIRSAD_RPC_URL: optional(z.string().url()),
+
+  /**
+   * Recipients the treasury has vouched for, comma-separated. Everything else
+   * receiving value is at least a WARN — the address book is what makes
+   * "unknown recipient" mean something.
+   */
+  MIRSAD_ADDRESS_BOOK: z
+    .string()
+    .default("")
+    .transform((v) =>
+      v
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => /^0x[0-9a-fA-F]{40}$/.test(s)) as `0x${string}`[],
+    ),
+
+  /**
    * Intent-drift classifier. Held behind a provider interface rather than
    * pinned to one vendor: the model is additive here — deterministic rules
    * reach VETO on their own, and the classifier only raises to WARN and

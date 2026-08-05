@@ -34,16 +34,26 @@ export class SafeQueueUnavailableError extends Error {
   }
 }
 
-/** Safe Transaction Service hosts, by chain id. */
-const TX_SERVICE_HOSTS: Record<string, string> = {
-  "1": "https://safe-transaction-mainnet.safe.global",
-  "10": "https://safe-transaction-optimism.safe.global",
-  "137": "https://safe-transaction-polygon.safe.global",
-  "8453": "https://safe-transaction-base.safe.global",
-  "42161": "https://safe-transaction-arbitrum.safe.global",
-  "11155111": "https://safe-transaction-sepolia.safe.global",
-  "84532": "https://safe-transaction-base-sepolia.safe.global",
+/**
+ * Safe chain shortnames for the unified Transaction Service.
+ *
+ * Verified 2026-08-05: the per-chain `safe-transaction-<chain>.safe.global`
+ * hosts now answer 308 and the live endpoint is
+ * `https://api.safe.global/tx-service/<shortname>/api/v1/...`. A 308 is a
+ * redirect a plain client may not follow with the Authorization header intact,
+ * so this reads as an auth failure if you don't check the status code.
+ */
+const SAFE_CHAIN_SHORTNAMES: Record<string, string> = {
+  "1": "eth",
+  "10": "oeth",
+  "137": "matic",
+  "8453": "base",
+  "42161": "arb1",
+  "11155111": "sep",
+  "84532": "basesep",
 };
+
+const txServiceBase = (shortname: string) => `https://api.safe.global/tx-service/${shortname}`;
 
 /** Raw Safe Transaction Service shape, narrowed to what we consume. */
 interface TxServiceEntry {
@@ -132,14 +142,14 @@ export class SafeTransactionServiceSource implements SafeQueueSource {
     private readonly apiKey?: string,
     private readonly timeoutMs = 15_000,
   ) {
-    const host = TX_SERVICE_HOSTS[chainId];
-    if (!host) {
+    const shortname = SAFE_CHAIN_SHORTNAMES[chainId];
+    if (!shortname) {
       throw new SafeQueueUnavailableError(
-        `No Safe Transaction Service host known for chain ${chainId}.`,
-        `Supported chains: ${Object.keys(TX_SERVICE_HOSTS).join(", ")}.`,
+        `No Safe Transaction Service shortname known for chain ${chainId}.`,
+        `Supported chains: ${Object.keys(SAFE_CHAIN_SHORTNAMES).join(", ")}.`,
       );
     }
-    this.host = host;
+    this.host = txServiceBase(shortname);
   }
 
   async fetchPending(): Promise<QueuedSafeTransaction[]> {
@@ -158,6 +168,12 @@ export class SafeTransactionServiceSource implements SafeQueueSource {
         throw new SafeQueueUnavailableError(
           `Safe Transaction Service rejected the request (HTTP ${res.status}).`,
           "Set SAFE_API_KEY. Safe requires an API key from developer.safe.global.",
+        );
+      }
+      if (res.status === 301 || res.status === 308) {
+        throw new SafeQueueUnavailableError(
+          `Safe Transaction Service redirected (HTTP ${res.status}) to ${res.headers.get("location") ?? "an unknown host"}.`,
+          "The per-chain safe-transaction-*.safe.global hosts are retired. Update SAFE_CHAIN_SHORTNAMES.",
         );
       }
       if (!res.ok) throw new Error(`Safe Transaction Service HTTP ${res.status}`);

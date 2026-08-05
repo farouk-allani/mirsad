@@ -28,7 +28,7 @@ export interface RuleContext {
   /** Recipients the treasury has explicitly approved. Compared case-insensitively. */
   addressBook: readonly `0x${string}`[];
   /** Native balance of the Safe, for proportional value checks. */
-  safeBalanceWei?: bigint;
+  safeBalanceWei?: bigint | undefined;
   /** Owner set at assessment time, used to spot removals of known owners. */
   owners?: readonly `0x${string}`[];
 }
@@ -254,7 +254,24 @@ export function detectValueDrift(tx: QueuedSafeTransaction, ctx: RuleContext): F
 
   const summary = `Transaction moves ${pct.toFixed(1)}% of the Safe's native balance.`;
   const detail = `value=${value} balance=${ctx.safeBalanceWei}`;
-  return [pct >= 90 ? veto("value-drift", summary, detail) : warn("value-drift", summary, detail)];
+
+  // Most of the treasury is a VETO on its own. Below that, the recipient
+  // decides it: half the treasury to a vouched-for counterparty is a large
+  // payment, while half the treasury to an address nobody has vouched for is
+  // the drain this project exists to stop. Neither signal is sufficient alone,
+  // and waiting for both to independently reach VETO would miss exactly the
+  // case that matters.
+  if (pct >= 90) return [veto("value-drift", summary, detail)];
+  const known = inAddressBook(ctx.addressBook, tx.to) || isAddressEqual(tx.to, ctx.safeAddress);
+  return [
+    known
+      ? warn("value-drift", summary, detail)
+      : veto(
+          "value-drift-to-unknown",
+          `${summary} The recipient is not in the treasury address book.`,
+          detail,
+        ),
+  ];
 }
 
 /** Proxy upgrades replace the code behind an address the treasury already trusts. */

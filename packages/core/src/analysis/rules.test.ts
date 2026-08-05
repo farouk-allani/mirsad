@@ -68,6 +68,28 @@ describe("attack scenarios", () => {
     expect(verdictFrom(findings)).toBe(Verdict.Veto);
   });
 
+  it("vetoes a majority-of-treasury transfer to an unknown address", () => {
+    // 80% is below the 90% unconditional-veto line. To a vouched-for
+    // counterparty this is a large payment; to a stranger it is the drain.
+    // Caught live: the first watch-loop run scored this WARN and would have
+    // let it through.
+    const findings = runRules(tx({ to: ATTACKER, value: parseEther("80").toString() }), ctx);
+    expect(codes(findings)).toContain("value-drift-to-unknown");
+    expect(verdictFrom(findings)).toBe(Verdict.Veto);
+  });
+
+  it("only warns on the same proportion to an address book entry", () => {
+    const findings = runRules(tx({ to: TRUSTED, value: parseEther("80").toString() }), ctx);
+    expect(codes(findings)).toEqual(["value-drift"]);
+    expect(verdictFrom(findings)).toBe(Verdict.Warn);
+  });
+
+  it("cannot check proportions at all without a balance", () => {
+    const noBalance = { ...ctx, safeBalanceWei: undefined };
+    const findings = runRules(tx({ to: ATTACKER, value: parseEther("80").toString() }), noBalance);
+    expect(codes(findings)).toEqual(["unknown-recipient"]);
+  });
+
   it("catches an attacker removing the guard first", () => {
     const data = encodeFunctionData({
       abi: SAFE_ADMIN_ABI,
