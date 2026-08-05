@@ -130,6 +130,58 @@ This is a *good* surprise, but it's still friction: we told the builder to fund 
 
 ---
 
+## 10. 🔴 The documented `execute_contract_call` parameters are not the ones the server accepts
+
+**What happened.** `execute_contract_call` is the primary write path — it is how an agent does anything onchain beyond a plain transfer. The MCP docs page gives its parameters as:
+
+```
+execute_contract_call(chain_id, contractAddress, abi, function, args, simulate, idempotency_key)
+```
+
+The server's own `inputSchema`, read from `tools/list`, is:
+
+```
+execute_contract_call(chain_id, contract_address, function_name, function_args,
+                      abi, value, gas_limit_multiplier, priority_fee_gwei,
+                      simulate, idempotency_key)
+required: contract_address, chain_id, function_name
+```
+
+Three of the documented names are wrong, and the types differ:
+
+| Docs | Server | Note |
+|---|---|---|
+| `contractAddress` | `contract_address` | camelCase vs snake_case |
+| `function` | `function_name` | |
+| `args` (array) | `function_args` | **a JSON *string***, e.g. `"[\"0x…\",\"1000\"]"`, not an array |
+| — | `value` | undocumented; needed for any payable function |
+| — | `gas_limit_multiplier` | undocumented |
+| — | `priority_fee_gwei` | undocumented; bypasses the chain's priority-fee clamp |
+
+**Why it costs more than it looks.** A builder copying the documented call gets a validation error on the one tool that matters most, and the natural reading of that error is "my ABI or my address is wrong" — not "the parameter names in the docs are wrong." The undocumented parameters are worse in the other direction: `priority_fee_gwei` is exactly the escape hatch you need when a transaction is stuck behind a priority-fee floor, which is the flagship failure mode this product exists to solve, and it is not mentioned anywhere a builder would look.
+
+**Proposed fix.** Generate the docs page from the server's `inputSchema` rather than maintaining it by hand — the schema already carries good per-field descriptions, so the generated page would be strictly better than the current one and cannot drift again. Short term, correct the three names and document `value`, `gas_limit_multiplier`, and `priority_fee_gwei`.
+
+*Status: open. Strongest merge candidate — it breaks the primary write path. Repo: docs + `KeeperHub/keeperhub`.*
+
+---
+
+## 11. 🟡 `get_wallet_integration` is documented as taking no parameters; it requires one
+
+Docs list it under "(no parameters)". The server's schema is `{integrationId: string}`, `required: ["integrationId"]` — calling it as documented returns `MCP error -32602`. Same root cause as #10, same fix: generate from schema. (Get the id from `/api/integrations` or `list_integrations`.)
+
+---
+
+## 12. 🟡 Sibling execution tools return different response shapes
+
+`execute_transfer` returns `executionId`, `status`, `transactionHash`, and `transactionLink` inline. `execute_contract_call` returns only `executionId` and `status` — you must call `get_direct_execution_status` to get the hash, even when the call has already completed.
+
+**Why it matters.** The documented safe-write sequence ends "retain `transactionLink` as onchain proof," which implies the write returns one. For half the write surface it doesn't, and a client that reads `transactionHash` off the response gets `undefined` with no error — it looks like the transaction silently failed.
+
+**Proposed fix.** Return the same envelope from both tools. If the hash genuinely isn't known yet, say so explicitly (`"transactionHash": null, "poll": true`) rather than omitting the field.
+
+---
+
 ## Still to come
 
 Items below get filled in as they happen — key creation, first `execute_transfer`, Safe deployment, marketplace listing, x402 settlement, gas sponsorship.
