@@ -67,6 +67,9 @@ const EnvSchema = z.object({
    */
   MIRSAD_RPC_URL: optional(z.string().url()),
 
+  /** Append-only, hash-chained audit trail. Gitignored: it is operational evidence. */
+  MIRSAD_AUDIT_PATH: z.string().default("data/audit.jsonl"),
+
   /**
    * Recipients the treasury has vouched for, comma-separated. Everything else
    * receiving value is at least a WARN — the address book is what makes

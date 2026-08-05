@@ -5,4 +5,5 @@ export * from "./analysis/signatures.js";
 export * from "./analysis/classifier.js";
 export * from "./safe/queue.js";
 export * from "./keeperhub/client.js";
+export * from "./audit/trail.js";
 export * from "./watch.js";

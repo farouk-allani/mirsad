@@ -2,6 +2,7 @@
 import "dotenv/config";
 import { createPublicClient, http } from "viem";
 import {
+  JsonlAuditTrail,
   KeeperHubClient,
   KeeperHubQueueSource,
   SafeTransactionServiceSource,
@@ -19,7 +20,7 @@ import {
  *   mirsad watch    poll the guarded Safe's queue and assess every entry
  */
 
-const COMMANDS = ["doctor", "watch"] as const;
+const COMMANDS = ["doctor", "watch", "audit"] as const;
 type Command = (typeof COMMANDS)[number];
 
 function usage(): never {
@@ -28,7 +29,8 @@ function usage(): never {
       `usage: mirsad <command>\n\n` +
       `commands:\n` +
       `  doctor    validate environment and report readiness\n` +
-      `  watch     poll the guarded Safe's queue and assess every entry\n`,
+      `  watch     poll the guarded Safe's queue and assess every entry\n` +
+      `  audit     print the audit trail and verify its hash chain\n`,
   );
   process.exit(2);
 }
@@ -130,6 +132,7 @@ async function watch(config: MirsadConfig): Promise<number> {
     );
   }
   const rpc = rpcUrl ? createPublicClient({ transport: http(rpcUrl) }) : null;
+  const trail = new JsonlAuditTrail(config.MIRSAD_AUDIT_PATH);
 
   const tower = new Watchtower({
     queue: buildQueueSource(config, kh),
@@ -142,6 +145,10 @@ async function watch(config: MirsadConfig): Promise<number> {
     chainId: config.MIRSAD_CHAIN_ID,
     registryAddress: config.MIRSAD_REGISTRY_ADDRESS as `0x${string}`,
     armed: config.MIRSAD_ARMED,
+    onRecord: async (record) => {
+      const entry = await trail.append(record);
+      process.stdout.write(`  audit  #${entry.seq}  ${entry.recordHash}\n`);
+    },
     ...(rpc
       ? {
           balanceProvider: () => rpc.getBalance({ address: safeAddress }),
@@ -174,9 +181,44 @@ async function watch(config: MirsadConfig): Promise<number> {
   return 0;
 }
 
+function audit(config: MirsadConfig): number {
+  const trail = new JsonlAuditTrail(config.MIRSAD_AUDIT_PATH);
+  const entries = trail.entries();
+
+  if (entries.length === 0) {
+    process.stdout.write(`no audit records at ${config.MIRSAD_AUDIT_PATH}\n`);
+    return 0;
+  }
+
+  for (const { seq, recordHash, record } of entries) {
+    const tx = record.transaction;
+    process.stdout.write(
+      `\n#${seq}  ${record.observedAt}  ${record.verdict}\n` +
+        `  safeTx   ${tx.safeTxHash}\n` +
+        `  to       ${tx.to}  value=${tx.value}  nonce=${tx.nonce}\n` +
+        `  reason   ${recordHash}\n`,
+    );
+    for (const f of record.findings) {
+      process.stdout.write(`  [${f.severity}] ${f.code} (${f.source}) ${f.summary}\n`);
+    }
+    if (record.transactionLink) {
+      process.stdout.write(`  onchain  ${record.transactionLink}  gas=${record.gasUsed ?? "?"}\n`);
+    }
+  }
+
+  const result = trail.verify();
+  process.stdout.write(
+    result.ok
+      ? `\nchain verified: ${result.count} records, unbroken.\n`
+      : `\nCHAIN BROKEN at entry #${result.failedAt}: ${result.reason}\n`,
+  );
+  return result.ok ? 0 : 1;
+}
+
 const command = process.argv[2];
 if (!command || !COMMANDS.includes(command as Command)) usage();
 
 const config = loadOrExit();
-const code = command === "watch" ? await watch(config) : doctor(config);
+const code =
+  command === "watch" ? await watch(config) : command === "audit" ? audit(config) : doctor(config);
 process.exit(code);
