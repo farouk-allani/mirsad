@@ -14,7 +14,12 @@
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
-    "agent": "pnpm --filter @mirsad/agent run dev"
+    "agent": "pnpm --filter @mirsad/agent run dev",
+    "mirsad": "node apps/agent/dist/main.js",
+    "doctor": "node apps/agent/dist/main.js doctor",
+    "watch": "node apps/agent/dist/main.js watch",
+    "audit": "node apps/agent/dist/main.js audit",
+    "publish:marketplace": "node apps/agent/dist/main.js publish"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

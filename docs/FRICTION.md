@@ -166,7 +166,7 @@ Three of the documented names are wrong, and the types differ:
 
 ---
 
-## 10b. 🔴 The same drift affects at least four more tools — this is systemic
+## 11. 🔴 The same drift affects at least four more tools — this is systemic
 
 Item 10 is not an isolated typo. Every MCP tool we reached for had a documented signature that the server rejected:
 
@@ -180,7 +180,7 @@ Item 10 is not an isolated typo. Every MCP tool we reached for had a documented 
 
 Five of the tools a builder needs first, all wrong in the same direction: hand-written docs that fell behind a generated schema. `validate_workflow` is the sharpest case — the docs describe validating a *draft* graph before creating it, while the server only validates an *already-created* workflow by id. Those are different features, so a builder doesn't experience it as a parameter-name error at all; they conclude they've misunderstood the product.
 
-**This one fix retires items 10, 11, and this one at once:** generate the MCP docs page from `tools/list`. Every field already carries a good description in the schema — several are *better* than the prose docs (`priority_fee_gwei` explains exactly when to reach for it, and appears nowhere in the docs). The generated page would be more accurate and more complete than what is published today, and it cannot drift again.
+**This one fix retires items 10, 12, and this one at once:** generate the MCP docs page from `tools/list`. Every field already carries a good description in the schema — several are *better* than the prose docs (`priority_fee_gwei` explains exactly when to reach for it, and appears nowhere in the docs). The generated page would be more accurate and more complete than what is published today, and it cannot drift again.
 
 **Workaround for other builders in the meantime:** call `tools/list` and read `inputSchema`. It is authoritative, and it takes one request:
 
@@ -192,13 +192,13 @@ curl -s https://app.keeperhub.com/mcp -H "Authorization: Bearer kh_..." \
 
 ---
 
-## 11. 🟡 `get_wallet_integration` is documented as taking no parameters; it requires one
+## 12. 🟡 `get_wallet_integration` is documented as taking no parameters; it requires one
 
 Docs list it under "(no parameters)". The server's schema is `{integrationId: string}`, `required: ["integrationId"]` — calling it as documented returns `MCP error -32602`. Same root cause as #10, same fix: generate from schema. (Get the id from `/api/integrations` or `list_integrations`.)
 
 ---
 
-## 12. 🟡 Sibling execution tools return different response shapes
+## 13. 🟡 Sibling execution tools return different response shapes
 
 `execute_transfer` returns `executionId`, `status`, `transactionHash`, and `transactionLink` inline. `execute_contract_call` returns only `executionId` and `status` — you must call `get_direct_execution_status` to get the hash, even when the call has already completed.
 
@@ -208,7 +208,7 @@ Docs list it under "(no parameters)". The server's schema is `{integrationId: st
 
 ---
 
-## 13. 🔴 The Code action is Pro-only, and nothing says so until you publish
+## 14. 🔴 The Code action is Pro-only, and nothing says so until you publish
 
 **What happened.** The marketplace is a headline feature of both the product and this hackathon — "go from consumer of KeeperHub to supplier on it." We built a listing that reads a Safe's pending queue and runs security detectors over it in a `code/run-code` node, then published it:
 
@@ -225,7 +225,7 @@ The failure arrives at `create_workflow`, after the node graph is written, the d
 
 - `get_plugin` with `pluginType: "code"` returns the full action schema — `requiredFields`, `optionalFields`, `outputFields` — with **no plan field and no mention of a tier**. It reads exactly like the free Safe and Web3 actions next to it.
 - The plugin index lists Code alongside Math, Webhook, and Web3 with no tier marking.
-- `validate_workflow` is not reachable as a pre-check, because validation requires an *already-created* workflow (see #10b) — and creation is what fails.
+- `validate_workflow` is not reachable as a pre-check, because validation requires an *already-created* workflow (see #11) — and creation is what fails.
 
 So the only way to discover the gate is to hit it. For a hackathon where the marketplace is explicitly one of the judged surfaces, that is a lot of work to lose. The Code action is also the natural way to do anything non-trivial in a listing: without it, a workflow can read chain state and branch on a condition, but it cannot transform, aggregate, or score anything — which is most of what a paid service would sell.
 
