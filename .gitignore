@@ -1,0 +1,48 @@
+# --- Agent context (local only, per project owner's instruction) ---
+CLAUDE.md
+.claude/settings.local.json
+
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+wallet.json
+.keeperhub/
+
+# --- Node ---
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+dist/
+build/
+coverage/
+.turbo/
+
+# --- Hardhat / contracts ---
+artifacts/
+cache/
+typechain-types/
+deployments/*.local.json
+
+# --- Runtime state ---
+data/
+*.sqlite
+*.sqlite-journal
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Next.js (apps/web, once the design system lands) ---
+.next/
+out/
+.vercel/
