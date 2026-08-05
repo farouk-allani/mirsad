@@ -85,13 +85,58 @@ So on the testnet the docs themselves recommend for hackathons, half the Safe pl
 
 ---
 
+## 6. 🟠 `/api/chains` returns two different things both called an id
+
+**What happened.** Every chain object carries an internal `id` (a nanoid, `8wwunraqp7z0901rirvbo`) *and* a `chainId` (the numeric EVM chain id, `11155111`). The quickstart tells you to pass `chain_id` as a string, so `id` looks like the field you want. Filtering or matching on it silently returns nothing — no error, just an empty result you then debug as a network or auth problem.
+
+**Proposed fix.** Rename the internal identifier to `keeperhubChainId` (or omit it from the public response entirely — callers address chains by EVM id everywhere else in the product). If it must stay, add one line to the API reference: *"`id` is KeeperHub's internal record id. Use `chainId` for `chain_id` in execution calls."*
+
+---
+
+## 7. 🟡 REST path discovery is trial-and-error
+
+**What happened.** Looking for the org wallet's balance, these all 404: `/api/wallet`, `/api/wallets`, `/api/wallet/info`, `/api/wallet/tokens`, `/api/billing/status`, `/api/executions`, `/api/analytics` — despite `kh wallet balance`, `kh billing status`, and an Analytics section all existing in the docs. The working set turned out to be `/api/workflows`, `/api/keys`, `/api/chains`, `/api/integrations`, `/api/integrations/{id}`.
+
+**Why it costs more than it looks.** The CLI command list reads like an API surface map, so a builder reasonably infers `kh wallet balance` → `GET /api/wallet/balance`. It isn't, and nothing says so.
+
+**Proposed fix.** Publish the OpenAPI document at a discoverable path and link it from the API reference index — `/openapi.json` is already referenced in the agentic-wallet docs for meta-tools, so most of this likely exists already. A one-line "the CLI is not a 1:1 mirror of the REST API" note in the CLI reference would also cover it.
+
+---
+
+## 8. 🟠 `simulate` reports gas for a path the execution doesn't take
+
+**What happened.** Landing our first transfer on Sepolia, the documented safe-write sequence returned:
+
+| Step | `gasEstimate` / `gasUsed` |
+|---|---|
+| `simulate: true` preflight | `21000` |
+| actual receipt | `74793` |
+
+3.6× off. The cause is legitimate: the transaction was **gas-sponsored**, so it executed as a meta-transaction — relayer `0xa17c…4e87` calling forwarder `0x5af5…f07d` with `value: 0` and 522 bytes of calldata — while the simulation modeled a bare EOA transfer (`21000` is *exactly* the base cost of one, which is the tell).
+
+**Why it costs more than it looks.** "Smart Gas Estimation" is a headline feature, and preflight gas is what a builder budgets against — for funding decisions, for cost alerts, for deciding whether a batch is affordable. Silently estimating a path the executor won't take undercuts the feature where it's most load-bearing. The discrepancy is also invisible unless you diff the two numbers yourself; nothing in the response flags it.
+
+**Proposed fix.** Have the simulation reflect the route the executor will actually take: if the org is sponsorship-eligible on that chain, simulate the forwarder path. Failing that, return the route in the preflight response — `"route": "sponsored-forwarder"` alongside `gasEstimate` — so a caller can at least tell the estimate is for a different path. Cheapest interim fix: one sentence in the safe-write docs noting that `gasEstimate` reflects the direct path and sponsored execution will exceed it.
+
+---
+
+## 9. 🟡 Gas sponsorship is documented as mainnet-only but works on Sepolia
+
+**What happened.** The hackathon brief and docs say gas sponsorship is offered "on mainnet Ethereum." Our first Sepolia transfer came back `"sponsored": true`, and the wallet's balance was **0.15 ETH before and 0.15 ETH after** — fully covered.
+
+This is a *good* surprise, but it's still friction: we told the builder to fund a wallet from a faucet before their first write, and it turned out to be unnecessary. A builder blocked on a dry faucet might give up on the hard gate of the whole hackathon without ever discovering that sponsorship would have carried them.
+
+**Proposed fix.** Say where sponsorship applies, per chain — ideally as a field on `/api/chains` (`gasSponsorship: true|false`) so it's discoverable programmatically rather than only from a receipt after the fact. Update the docs line to name the testnets. For the hackathon specifically, this is worth saying loudly in the quickstart: *"you may not need testnet ETH at all."*
+
+---
+
 ## Still to come
 
 Items below get filled in as they happen — key creation, first `execute_transfer`, Safe deployment, marketplace listing, x402 settlement, gas sponsorship.
 
-- [ ] Account signup → first `kh_` key
+- [x] Account signup → first `kh_` key
 - [ ] `kh` installed and authenticated on Windows
-- [ ] First landed transaction (Sepolia)
+- [x] First landed transaction (Sepolia) — [`0xb6afb213…`](https://sepolia.etherscan.io/tx/0xb6afb2133ed33b7a7192fbddfad9bd7761f329e5b4c0e46c184105082aeb50a4), via MCP, gas-sponsored
 - [ ] Safe deployed and linked
 - [ ] `Get Pending Transactions` returning real queue data
 - [ ] Marketplace listing + first paid x402 call
