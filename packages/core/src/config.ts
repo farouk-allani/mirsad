@@ -59,7 +59,10 @@ const EnvSchema = z.object({
 
   CLASSIFIER_API_KEY: optional(z.string().min(1)),
   CLASSIFIER_BASE_URL: z.string().url().default("https://api.deepseek.com"),
-  CLASSIFIER_MODEL: z.string().default("deepseek-chat"),
+  // Verified against DeepSeek's /models endpoint 2026-08-05: the live ids are
+  // `deepseek-v4-flash` and `deepseek-v4-pro`. The older `deepseek-chat` still
+  // answers but is no longer listed — don't default to it.
+  CLASSIFIER_MODEL: z.string().default("deepseek-v4-flash"),
 
   /** Seconds between queue polls. */
   MIRSAD_POLL_INTERVAL_SECONDS: z.coerce.number().int().positive().default(20),
