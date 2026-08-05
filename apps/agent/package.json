@@ -1,0 +1,29 @@
+{
+  "name": "@mirsad/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mirsad": "./dist/main.js"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @mirsad/core run build && tsx watch src/main.ts",
+    "doctor": "pnpm --filter @mirsad/core run build && tsx src/main.ts doctor",
+    "start": "node dist/main.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@mirsad/core": "workspace:*",
+    "dotenv": "^16.5.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}
