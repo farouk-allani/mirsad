@@ -28,8 +28,11 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: { sepolia: process.env.ETHERSCAN_API_KEY ?? "" },
+    // A single key, not a per-network map: the per-network form is the
+    // Etherscan V1 shape and V1 endpoints are retired.
+    apiKey: process.env.ETHERSCAN_API_KEY ?? "",
   },
+  sourcify: { enabled: false },
 };
 
 export default config;
