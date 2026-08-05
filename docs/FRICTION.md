@@ -166,6 +166,32 @@ Three of the documented names are wrong, and the types differ:
 
 ---
 
+## 10b. 🔴 The same drift affects at least four more tools — this is systemic
+
+Item 10 is not an isolated typo. Every MCP tool we reached for had a documented signature that the server rejected:
+
+| Tool | Docs say | Server requires |
+|---|---|---|
+| `execute_contract_call` | `contractAddress`, `function`, `args` | `contract_address`, `function_name`, `function_args` |
+| `get_wallet_integration` | *(no parameters)* | `integrationId` |
+| `get_plugin` | `type` | `pluginType` |
+| `validate_workflow` | `nodes`, `edges` | `workflowId`, `deepCheck` |
+| `list_workflow` | `id`, `description`, `tags`, `category` | `workflowId`, `slug`, `category`, `chain`, `inputSchema`, `outputMapping`, `workflowType` |
+
+Five of the tools a builder needs first, all wrong in the same direction: hand-written docs that fell behind a generated schema. `validate_workflow` is the sharpest case — the docs describe validating a *draft* graph before creating it, while the server only validates an *already-created* workflow by id. Those are different features, so a builder doesn't experience it as a parameter-name error at all; they conclude they've misunderstood the product.
+
+**This one fix retires items 10, 11, and this one at once:** generate the MCP docs page from `tools/list`. Every field already carries a good description in the schema — several are *better* than the prose docs (`priority_fee_gwei` explains exactly when to reach for it, and appears nowhere in the docs). The generated page would be more accurate and more complete than what is published today, and it cannot drift again.
+
+**Workaround for other builders in the meantime:** call `tools/list` and read `inputSchema`. It is authoritative, and it takes one request:
+
+```bash
+curl -s https://app.keeperhub.com/mcp -H "Authorization: Bearer kh_..." \
+  -H "Accept: application/json, text/event-stream" -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | jq '.result.tools[] | {name, inputSchema}'
+```
+
+---
+
 ## 11. 🟡 `get_wallet_integration` is documented as taking no parameters; it requires one
 
 Docs list it under "(no parameters)". The server's schema is `{integrationId: string}`, `required: ["integrationId"]` — calling it as documented returns `MCP error -32602`. Same root cause as #10, same fix: generate from schema. (Get the id from `/api/integrations` or `list_integrations`.)
