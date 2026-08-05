@@ -20,7 +20,9 @@ import {
  *   mirsad watch    poll the guarded Safe's queue and assess every entry
  */
 
-const COMMANDS = ["doctor", "watch", "audit"] as const;
+import { publish } from "./publish.js";
+
+const COMMANDS = ["doctor", "watch", "audit", "publish"] as const;
 type Command = (typeof COMMANDS)[number];
 
 function usage(): never {
@@ -30,7 +32,7 @@ function usage(): never {
       `commands:\n` +
       `  doctor    validate environment and report readiness\n` +
       `  watch     poll the guarded Safe's queue and assess every entry\n` +
-      `  audit     print the audit trail and verify its hash chain\n`,
+      `  audit     print the audit trail and verify its hash chain\n  publish   publish MIRSAD to the KeeperHub marketplace\n`,
   );
   process.exit(2);
 }
@@ -220,5 +222,11 @@ if (!command || !COMMANDS.includes(command as Command)) usage();
 
 const config = loadOrExit();
 const code =
-  command === "watch" ? await watch(config) : command === "audit" ? audit(config) : doctor(config);
+  command === "watch"
+    ? await watch(config)
+    : command === "audit"
+      ? audit(config)
+      : command === "publish"
+        ? await publish(config)
+        : doctor(config);
 process.exit(code);

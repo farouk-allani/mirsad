@@ -208,6 +208,37 @@ Docs list it under "(no parameters)". The server's schema is `{integrationId: st
 
 ---
 
+## 13. 🔴 The Code action is Pro-only, and nothing says so until you publish
+
+**What happened.** The marketplace is a headline feature of both the product and this hackathon — "go from consumer of KeeperHub to supplier on it." We built a listing that reads a Safe's pending queue and runs security detectors over it in a `code/run-code` node, then published it:
+
+```json
+402 Payment Required
+{"error":"This workflow uses features that require a paid plan.","code":"upgrade_required",
+ "violations":[{"featureId":"action.code","featureName":"Code action",
+                "requiredPlan":"pro","actionType":"code/run-code","nodeIds":["step-2"]}]}
+```
+
+The failure arrives at `create_workflow`, after the node graph is written, the detector logic is ported into sandboxed JS, and the input/output schemas are designed around it.
+
+**Why it costs more than it looks.** Nothing upstream signals the gate:
+
+- `get_plugin` with `pluginType: "code"` returns the full action schema — `requiredFields`, `optionalFields`, `outputFields` — with **no plan field and no mention of a tier**. It reads exactly like the free Safe and Web3 actions next to it.
+- The plugin index lists Code alongside Math, Webhook, and Web3 with no tier marking.
+- `validate_workflow` is not reachable as a pre-check, because validation requires an *already-created* workflow (see #10b) — and creation is what fails.
+
+So the only way to discover the gate is to hit it. For a hackathon where the marketplace is explicitly one of the judged surfaces, that is a lot of work to lose. The Code action is also the natural way to do anything non-trivial in a listing: without it, a workflow can read chain state and branch on a condition, but it cannot transform, aggregate, or score anything — which is most of what a paid service would sell.
+
+**Proposed fix, cheapest first.**
+1. Add `requiredPlan` to the action schema returned by `get_plugin` and `list_action_schemas`. One field, and it makes every client — including agents, which cannot read a pricing page — able to check before building.
+2. Mark tiered actions in the plugin index and on each plugin's docs page.
+3. Return the violation from `validate_workflow` as a warning so a draft can be checked before creation. This needs #10b's draft-validation form to exist.
+4. For the hackathon specifically: say plainly in the quickstart which actions need a paid plan, or grant participants Pro for the event. Judging on "use of the marketplace" while gating the action that makes a listing worth paying for is a mismatch worth closing.
+
+**What we shipped instead.** A listing built only from free actions — `mirsad-safe-queue`, live and publicly resolvable via `get_workflow_listing` with no auth. Listing, slugs, input/output schemas, and public discovery all work fine on the free plan; only the Code node is gated.
+
+---
+
 ## Still to come
 
 Items below get filled in as they happen — key creation, first `execute_transfer`, Safe deployment, marketplace listing, x402 settlement, gas sponsorship.
