@@ -1,0 +1,15 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployedAt": "2026-08-05T14:49:13.364Z",
+  "deployer": "0x52860A8b6c38aE001B1Ec16246e5180Ca1Cef463",
+  "contracts": {
+    "MirsadVerdictRegistry": "0xe51388ac0CB9Bcc36548E2D0F163055FaE402256",
+    "MirsadGuard": "0x997E4CA7e93696bA11d65cC390A1CEC3aC149E04"
+  },
+  "registryWriter": "0x1F535539d5495F0e58ECB8F16006605acFfd33f4",
+  "txHashes": {
+    "MirsadVerdictRegistry": "0xe0c4104890a8ff81548f82713ce4f3990d323f3ffc836c8144fe023e9d55fd99",
+    "MirsadGuard": "0x0ef0a094ffc845a1665e8c38145def15aa4b45af866dca21ee050eb9f46766ad"
+  }
+}

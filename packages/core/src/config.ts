@@ -38,8 +38,13 @@ const EnvSchema = z.object({
     z.string().regex(/^0x[0-9a-fA-F]{40}$/, "Expected a 20-byte hex address"),
   ),
 
-  /** Deployed MirsadVerdictRegistry. Absent until contracts land. */
+  /** Deployed MirsadVerdictRegistry — MIRSAD writes verdicts here via KeeperHub. */
   MIRSAD_REGISTRY_ADDRESS: optional(
+    z.string().regex(/^0x[0-9a-fA-F]{40}$/, "Expected a 20-byte hex address"),
+  ),
+
+  /** Deployed MirsadGuard — installed on a Safe with `setGuard` to enforce vetoes. */
+  MIRSAD_GUARD_ADDRESS: optional(
     z.string().regex(/^0x[0-9a-fA-F]{40}$/, "Expected a 20-byte hex address"),
   ),
 

@@ -33,6 +33,7 @@ function doctor(): number {
     ["Watch chain", true, config.MIRSAD_CHAIN_ID],
     ["Guarded Safe", Boolean(config.MIRSAD_SAFE_ADDRESS), config.MIRSAD_SAFE_ADDRESS ?? "not set — deploy a Safe first"],
     ["Verdict registry", Boolean(config.MIRSAD_REGISTRY_ADDRESS), config.MIRSAD_REGISTRY_ADDRESS ?? "not deployed yet"],
+    ["Safe guard", Boolean(config.MIRSAD_GUARD_ADDRESS), config.MIRSAD_GUARD_ADDRESS ?? "not deployed yet"],
     [
       "Classifier",
       config.MIRSAD_CLASSIFIER === "none" || Boolean(config.CLASSIFIER_API_KEY),
