@@ -101,7 +101,18 @@ return {
 
 export const MARKETPLACE_SLUG = "mirsad-safe-guard";
 
-export function buildAuditWorkflow(defaultSafe: string) {
+/**
+ * Per-call price in USDC.
+ *
+ * $0.05 sits at the top of KeeperHub's typical $0.001–$0.10 band, and workflows
+ * at or above $0.05 are exempt from monthly org execution quotas on paid calls
+ * — so pricing below it would cost more than it earns. It is also the right
+ * order of magnitude for the value: a treasury deciding whether to sign is not
+ * price-sensitive at five cents.
+ */
+const PRICE_USDC_PER_CALL = "0.05";
+
+export function buildAuditWorkflow(defaultSafe: string, safeIntegrationId: string) {
   return {
     name: "MIRSAD: Safe queue audit",
     description:
@@ -135,6 +146,9 @@ export function buildAuditWorkflow(defaultSafe: string) {
             actionType: "safe/get-pending-transactions",
             safeAddress: "{{@trigger-1:Trigger.safeAddress}}",
             network: "{{@trigger-1:Trigger.network}}",
+            // Required despite not appearing in the action's published schema:
+            // without it the node fails with "Safe API key is required."
+            integrationId: safeIntegrationId,
           },
         },
       },
@@ -158,6 +172,19 @@ export function buildAuditWorkflow(defaultSafe: string) {
   };
 }
 
+/** Resolve a listed slug back to its workflow id. Absent slugs 404. */
+async function findListedWorkflowId(
+  kh: KeeperHubClient,
+  slug: string,
+): Promise<string | null> {
+  try {
+    const listing = await kh.callTool<{ id?: string }>("get_workflow_listing", { slug });
+    return listing?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function publish(config: MirsadConfig): Promise<number> {
   const kh = new KeeperHubClient({
     apiKey: config.KEEPERHUB_API_KEY,
@@ -165,19 +192,70 @@ export async function publish(config: MirsadConfig): Promise<number> {
   });
   await kh.connect();
 
-  const wf = buildAuditWorkflow(config.MIRSAD_SAFE_ADDRESS ?? "");
-  const created = await kh.callTool<{ id: string }>("create_workflow", {
-    ...wf,
-    enabled: true,
-    idempotency_key: `mirsad-marketplace-${MARKETPLACE_SLUG}`,
-  });
-  process.stdout.write(`workflow  ${created.id}\n`);
+  // Look the Safe credential up rather than hardcoding an org-specific id, so
+  // this is reproducible in someone else's organisation.
+  const integrations = await kh.callTool<Array<{ id: string; type: string }>>(
+    "list_integrations",
+    {},
+  );
+  const safeIntegration = integrations.find((i) => i.type === "safe");
+  if (!safeIntegration) {
+    process.stderr.write(
+      "No Safe integration found. Add a Safe Transaction Service API key under\n" +
+        "KeeperHub connections before publishing — the listing cannot read a queue without it.\n",
+    );
+    return 1;
+  }
+
+  const wf = buildAuditWorkflow(config.MIRSAD_SAFE_ADDRESS ?? "", safeIntegration.id);
+
+  // Upsert by slug rather than leaning on an idempotency key. Idempotency keys
+  // guarantee a *retry* of an identical payload is safe; republishing a changed
+  // workflow under the same key is a 409 by design, not a bug to work around.
+  const existingId = await findListedWorkflowId(kh, MARKETPLACE_SLUG);
+  let workflowId: string;
+
+  if (existingId) {
+    workflowId = existingId;
+    await kh.callTool("update_workflow", {
+      workflowId,
+      name: wf.name,
+      description: wf.description,
+      nodes: wf.nodes,
+      edges: wf.edges,
+      enabled: true,
+    });
+    process.stdout.write(`workflow  ${workflowId} (updated)\n`);
+  } else {
+    const created = await kh.callTool<{ id: string }>("create_workflow", {
+      ...wf,
+      enabled: true,
+    });
+    workflowId = created.id;
+    process.stdout.write(`workflow  ${workflowId} (created)\n`);
+  }
+  const created = { id: workflowId };
 
   const validation = await kh.callTool<{ ok: boolean; result?: unknown }>("validate_workflow", {
     workflowId: created.id,
     deepCheck: true,
   });
   process.stdout.write(`validated ${JSON.stringify(validation)}\n`);
+
+  // Price must be set while UNLISTED — the schema says "only allowed while
+  // unlisted", so the intuitive order (list, then price) fails. Unlist first if
+  // this is a republish; a never-listed workflow makes this a harmless no-op.
+  try {
+    await kh.callTool("unlist_workflow", { workflowId: created.id });
+  } catch {
+    /* not listed yet */
+  }
+  const priced = await kh.callTool<{ priceUsdcPerCall?: string }>("update_workflow_listing", {
+    workflowId: created.id,
+    // A string, not a number, despite being a price.
+    priceUsdcPerCall: PRICE_USDC_PER_CALL,
+  });
+  process.stdout.write(`priced    $${priced.priceUsdcPerCall ?? PRICE_USDC_PER_CALL} USDC/call\n`);
 
   // The slug is permanent once published; the price and output schema are not.
   const listing = await kh.callTool("list_workflow", {
@@ -201,7 +279,11 @@ export async function publish(config: MirsadConfig): Promise<number> {
     },
     outputMapping: { nodeId: "step-2", fields: "all" },
   });
-  process.stdout.write(`listed    ${JSON.stringify(listing)}\n`);
+  const listed = listing as { priceUsdcPerCall?: string | null };
+  process.stdout.write(
+    `listed    slug=${MARKETPLACE_SLUG}  price=${listed.priceUsdcPerCall ?? "unset"}\n`,
+  );
+
   process.stdout.write(
     `\npublic    https://app.keeperhub.com/mcp/w/${MARKETPLACE_SLUG}\n` +
       `call      https://app.keeperhub.com/api/mcp/workflows/${MARKETPLACE_SLUG}/call\n`,

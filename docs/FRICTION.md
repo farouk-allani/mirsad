@@ -239,6 +239,34 @@ So the only way to discover the gate is to hit it. For a hackathon where the mar
 
 ---
 
+## 15. 🟠 Pricing a listing requires unlisting it first, and the docs say the opposite
+
+**What happened.** The Marketplace docs state: *"You can adjust pricing anytime post-launch. Calls settle at the rate active when execution occurs."* The natural reading — and the natural implementation — is list, then price.
+
+The schema for `update_workflow_listing` says otherwise:
+
+```
+"priceUsdcPerCall": { "type": "string", "description": "Updated price in USDC (only allowed while unlisted)" }
+```
+
+So the working order is **unlist → set price → list**. Doing it the documented way leaves `priceUsdcPerCall: null` on a live listing — a *free* listing, silently, with no error to tell you the price didn't take. That is the worst possible failure mode for a monetization feature: it looks like it worked.
+
+The type is also worth flagging: `priceUsdcPerCall` is a **string**, not a number, which is defensible for decimal precision but is not what a caller writing `0.05` expects.
+
+**Proposed fix.** Either allow pricing a listed workflow (and match the docs), or return an explicit error when a price is submitted for a listed workflow instead of accepting the call and ignoring the field. If the constraint is deliberate, the docs sentence should read *"unlist the workflow to change its price."* Cheapest correct fix: have `list_workflow` accept `priceUsdcPerCall` directly, so listing and pricing are one atomic operation and the ordering trap disappears.
+
+---
+
+## 16. 🟡 `integrationId` is required on Safe plugin nodes but absent from the action schema
+
+`get_plugin` reports `safe/get-pending-transactions` as needing `safeAddress` and `network`, with `signerAddress` optional. Building a node from exactly that fails at runtime with *"Safe API key is required. Configure it in the integration settings"* — even with the Safe credential already configured on the org.
+
+The missing piece is `integrationId`, pointing at the credential's id from `/api/integrations`. It appears in no schema and in no example. The error message is good — it names the problem and where to fix it — but it sends you to the connections page, which is where you already were, rather than telling you the node needs to reference the connection explicitly.
+
+**Proposed fix.** Add `integrationId` to `requiredFields` for every action with `requiresCredentials: true`, and extend the error to *"…or the node is missing `integrationId`."* Better still: default it to the org's single credential of the matching type when exactly one exists, which is the overwhelmingly common case.
+
+---
+
 ## Still to come
 
 Items below get filled in as they happen — key creation, first `execute_transfer`, Safe deployment, marketplace listing, x402 settlement, gas sponsorship.

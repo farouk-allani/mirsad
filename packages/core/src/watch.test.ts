@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Watchtower, assess, reasonHashOf } from "./watch.js";
+import { Watchtower, assess, reasonHashOf, type WatchOptions } from "./watch.js";
 import { MemoryAuditTrail } from "./audit/trail.js";
 import { NullClassifier, type Classifier } from "./analysis/classifier.js";
 import type { RuleContext } from "./analysis/rules.js";
@@ -66,7 +66,7 @@ function fakeKeeperHub() {
 
 const ctx = (): RuleContext => ({ safeAddress: SAFE, addressBook: [TRUSTED] });
 
-function tower(overrides: Partial<Parameters<typeof Watchtower.prototype.constructor>[0]> = {}) {
+function tower(overrides: Partial<WatchOptions> = {}) {
   const kh = fakeKeeperHub();
   const records: AuditRecord[] = [];
   const logs: string[] = [];
@@ -80,7 +80,7 @@ function tower(overrides: Partial<Parameters<typeof Watchtower.prototype.constru
     armed: true,
     onRecord: (r) => void records.push(r),
     log: (m) => void logs.push(m),
-    ...(overrides as object),
+    ...overrides,
   });
   return { t, kh, records, logs };
 }
@@ -217,7 +217,11 @@ describe("resilience", () => {
 describe("audit linkage", () => {
   it("the reason hash written onchain matches the audit trail entry", async () => {
     const trail = new MemoryAuditTrail();
-    const { t, kh } = tower({ onRecord: (r: AuditRecord) => trail.append(r) });
+    const { t, kh } = tower({
+      onRecord: async (r: AuditRecord) => {
+        await trail.append(r);
+      },
+    });
     await t.tick();
 
     const entry = trail.entries()[0]!;
