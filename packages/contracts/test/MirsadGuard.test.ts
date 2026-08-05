@@ -1,6 +1,14 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import type { Signer } from "ethers";
+import {
+  AddressZero,
+  Level,
+  Operation,
+  safeTx,
+  signSafeTx,
+  type SafeTx,
+} from "../lib/safeTx";
 
 /**
  * These tests run against the real Safe v1.4.1 contracts, not a mock. The
@@ -8,78 +16,6 @@ import type { Signer } from "ethers";
  * if every owner signs it" — is only worth anything if it holds against the
  * actual Safe implementation a treasury runs.
  */
-
-const AddressZero = "0x0000000000000000000000000000000000000000";
-
-enum Operation {
-  Call = 0,
-  DelegateCall = 1,
-}
-
-enum Level {
-  None = 0,
-  Allow = 1,
-  Warn = 2,
-  Veto = 3,
-}
-
-interface SafeTx {
-  to: string;
-  value: bigint;
-  data: string;
-  operation: Operation;
-  safeTxGas: bigint;
-  baseGas: bigint;
-  gasPrice: bigint;
-  gasToken: string;
-  refundReceiver: string;
-  nonce: bigint;
-}
-
-function safeTx(partial: Partial<SafeTx> & { to: string; nonce: bigint }): SafeTx {
-  return {
-    value: 0n,
-    data: "0x",
-    operation: Operation.Call,
-    safeTxGas: 0n,
-    baseGas: 0n,
-    gasPrice: 0n,
-    gasToken: AddressZero,
-    refundReceiver: AddressZero,
-    ...partial,
-  };
-}
-
-/**
- * Produce the packed signature blob Safe expects: each owner's EIP-712
- * signature, concatenated in ascending owner-address order.
- */
-async function signSafeTx(safeAddress: string, chainId: bigint, tx: SafeTx, owners: Signer[]) {
-  const domain = { chainId, verifyingContract: safeAddress };
-  const types = {
-    SafeTx: [
-      { name: "to", type: "address" },
-      { name: "value", type: "uint256" },
-      { name: "data", type: "bytes" },
-      { name: "operation", type: "uint8" },
-      { name: "safeTxGas", type: "uint256" },
-      { name: "baseGas", type: "uint256" },
-      { name: "gasPrice", type: "uint256" },
-      { name: "gasToken", type: "address" },
-      { name: "refundReceiver", type: "address" },
-      { name: "nonce", type: "uint256" },
-    ],
-  };
-
-  const signed = await Promise.all(
-    owners.map(async (owner) => ({
-      addr: (await owner.getAddress()).toLowerCase(),
-      sig: await owner.signTypedData(domain, types, tx),
-    })),
-  );
-  signed.sort((a, b) => (a.addr < b.addr ? -1 : 1));
-  return "0x" + signed.map((s) => s.sig.slice(2)).join("");
-}
 
 async function deployFixture() {
   const wallets = await ethers.getSigners();
