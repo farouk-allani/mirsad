@@ -19,22 +19,22 @@ A 2-of-3 Safe on Sepolia holding 0.05 ETH. An attacker queues a drain. **All thr
 ```
 $ pnpm hardhat run scripts/demo-veto.ts --network sepolia
 
-Safe      : 0x499d502527243c56434749CAbd01A115E298e338
+Safe      : 0xe10b5A1c804b3caD6F3c44058e590dcFEC4020eC
 threshold : 2 of 3
 balance   : 0.05 ETH
 
 [1] attacker queues a drain of 0.04 ETH to 0x…dEaD
-    safeTxHash 0x8e526a33de78a5a76cec64232eb2a5e338f4342cf67d738844f3433c50442f49
+    safeTxHash 0x15e041634fba96a03eb37b4629b7f1985af0ac2ba042dccd6e1dc6ce27786f00
 
 [2] MIRSAD verdict: VETO
     writing onchain via KeeperHub...
-    completed  gas 116332  sponsored=true
-    https://sepolia.etherscan.io/tx/0x08a961792d5fefd72607a90ad5cd92f43d85cf370ddab54856783a2d43f56d65
+    completed  gas 116320  sponsored=true
+    https://sepolia.etherscan.io/tx/0xd367d4e900dc92a6f95458a4388264b53dff89e887de23a5916a0609ef712d55
 
 [3] registry.isVetoed(safeTxHash) = true
 
 [4] all 3 owners sign (threshold is 2)...
-    REVERTED: MirsadVeto(0x8e526a33…2f49)
+    REVERTED: MirsadVeto(0x15e04163…6f00)
 
     balance before : 0.05 ETH
     balance after  : 0.05 ETH
@@ -54,15 +54,18 @@ Both contracts are verified — read the guard's logic yourself rather than trus
 |---|---|
 | `MirsadVerdictRegistry` | [`0xe51388ac0CB9Bcc36548E2D0F163055FaE402256`](https://sepolia.etherscan.io/address/0xe51388ac0CB9Bcc36548E2D0F163055FaE402256#code) |
 | `MirsadGuard` | [`0x997E4CA7e93696bA11d65cC390A1CEC3aC149E04`](https://sepolia.etherscan.io/address/0x997E4CA7e93696bA11d65cC390A1CEC3aC149E04#code) |
-| Guarded Safe | [`0x499d502527243c56434749CAbd01A115E298e338`](https://app.safe.global/transactions/queue?safe=sep:0x499d502527243c56434749CAbd01A115E298e338) — 2-of-3, real Safe v1.4.1 |
+| Guarded Safe | [`0xe10b5A1c804b3caD6F3c44058e590dcFEC4020eC`](https://app.safe.global/transactions/queue?safe=sep:0xe10b5A1c804b3caD6F3c44058e590dcFEC4020eC) — 2-of-3, real Safe v1.4.1 |
 
-**Transactions MIRSAD executed through KeeperHub**, all gas-sponsored:
+**Transactions MIRSAD executed through KeeperHub**, all gas-sponsored, all found and blocked **with no human in the loop**:
 
-- [`0x8005afea…`](https://sepolia.etherscan.io/tx/0x8005afea60553cf4f41e34d015216be45c02a7e5ef8f3c0fb57849a4c38741d2) — vetoed an owner swap disguised as *"Rotate the hardware wallet for owner 3, per our key-rotation policy."*
-- [`0x8861e9eb…`](https://sepolia.etherscan.io/tx/0x8861e9ebc4d5873394ee7165d0fe09c4b3ba2c699cc2f040e15825f2bb74f8ee) — vetoed an attempt to **remove MIRSAD's own guard**, filed as *"Routine maintenance: clear a deprecated module reference."*
-- [`0x08a96179…`](https://sepolia.etherscan.io/tx/0x08a961792d5fefd72607a90ad5cd92f43d85cf370ddab54856783a2d43f56d65) — the veto from the demo above.
+| Attack caught | Veto written onchain | Gas |
+|---|---|---|
+| **Guard removal** — an attempt to remove MIRSAD's own guard, filed as *"Routine maintenance: clear a deprecated module reference."* | [`0x500e8f4e…`](https://sepolia.etherscan.io/tx/0x500e8f4ebcce4fefa4c188f126f1b1ac3f83c07ab39f2ecf6e96ed5bd793ad91) | 116332 |
+| **Hidden delegatecall** — the Bybit shape: foreign code executed against the Safe's own storage. | [`0x2f5f42bf…`](https://sepolia.etherscan.io/tx/0x2f5f42bfd89c4dafb426ddd2dd84676c8c9f4255c54f4793cbd902ca9f8b7419) | 116332 |
+| **Silent owner swap** — disguised as *"Rotate the hardware wallet for owner 3, per our key-rotation policy."* | [`0x3e037e27…`](https://sepolia.etherscan.io/tx/0x3e037e27485252876778e4f0a351015697adf2a5e00bd57bc46ccc6a0b1b1640) | 116320 |
+| **Treasury drain** — 80% of the Safe's balance to an address outside the address book. | [`0xd367d4e9…`](https://sepolia.etherscan.io/tx/0xd367d4e900dc92a6f95458a4388264b53dff89e887de23a5916a0609ef712d55) | 116320 |
 
-Both of the first two were found and blocked **with no human in the loop**.
+Each of those four is checkable without trusting this document. `isVetoed(safeTxHash)` returns `true` on the registry for all four, and the `reasonHash` in each transaction's calldata is byte-for-byte the record hash in `data/audit.jsonl` — the onchain veto and the reasoning that produced it are cryptographically linked.
 
 ---
 
@@ -137,18 +140,18 @@ A treasury-security tool whose own records can be edited afterwards proves nothi
 ```
 $ pnpm run audit
 
-#0  2026-08-05T21:08:38.387Z  VETO
-  safeTx   0xd1ae867813f0881dadcd2a53c5a5c09b7448a760dd474b8e9818e1d730776ab4
-  reason   0x0c53a4cd46d384b2eb7ab432e40de0bb1fa84ab7461cd78bb859df58abf0389b
+#6  2026-08-12T09:22:20.962Z  VETO
+  safeTx   0xa0e190c0ce196bae806705495f5f3fe73ad17632929096844af896a6ae6496a1
+  reason   0x11b418185bd0c94fb74d9f802c9a0680022e1c5a0344590693e1964538e2064c
   [VETO] guard-change (rule) Transaction REMOVES the Safe's transaction guard.
-  onchain  https://sepolia.etherscan.io/tx/0x8861e9eb…f8ee  gas=116320
+  onchain  https://sepolia.etherscan.io/tx/0x500e8f4e…ad91  gas=116332
 
-chain verified: 3 records, unbroken.
+chain verified: 10 records, unbroken.
 ```
 
 Editing, deleting, or reordering history breaks the chain, and `verify()` names the first entry that fails. Corrupting the file is reported as a chain break rather than crashing the reader — a crash would hide the rest of the log from whoever is investigating.
 
-The `reason` hash is **exactly** the `reasonHash` committed onchain by the veto. Anyone holding this file can verify that an onchain verdict matches the reasoning that produced it. A test pins that equality, and another proves execution results are excluded from the hash — they are learned after the verdict, so including them would make the onchain commitment unverifiable.
+The `reason` hash is **exactly** the `reasonHash` committed onchain by the veto. Anyone holding this file can verify that an onchain verdict matches the reasoning that produced it — the trail from the runs above is committed at [`docs/audit-trail.jsonl`](docs/audit-trail.jsonl), so you can check that equality against Sepolia yourself without running anything. A test pins that equality, and another proves execution results are excluded from the hash — they are learned after the verdict, so including them would make the onchain commitment unverifiable.
 
 ---
 
@@ -204,7 +207,7 @@ call   https://app.keeperhub.com/api/mcp/workflows/mirsad-safe-guard/call
 ```
 
 ```json
-{ "safe": "0x499d…e338", "assessed": 3, "vetoed": 2, "warned": 1,
+{ "safe": "0xe10b…20eC", "assessed": 3, "vetoed": 2, "warned": 1,
   "transactions": [
     { "verdict": "VETO", "findings": [{ "code": "guard-change",
         "summary": "Changes or removes the transaction guard. An attacker does this first." }] }
@@ -224,7 +227,7 @@ apps/agent           doctor | watch | audit | publish
 docs/FRICTION.md     a teardown of zero-to-first-transaction on KeeperHub
 ```
 
-**72 tests.** The contract suite runs against real Safe v1.4.1 contracts rather than mocks — the central claim is only worth something if it holds against the implementation a treasury actually runs.
+**72 tests** — 71 run offline; the one that calls the live classifier API is opt-in, so a clone with no keys still gets a green suite. The contract suite runs against real Safe v1.4.1 contracts rather than mocks — the central claim is only worth something if it holds against the implementation a treasury actually runs.
 
 ---
 
@@ -238,7 +241,7 @@ The address book is currently configuration. In production it should be onchain 
 
 ## docs/FRICTION.md
 
-Sixteen items logged while building this, in real time, each with a proposed fix. The most consequential: the documented parameters for `execute_contract_call` — the primary write path — do not match the schema the server accepts, and the same drift affects four more tools. One fix retires most of them: generate the docs page from `tools/list`, where the field descriptions are already better than the published ones.
+Seventeen items logged while building this, in real time, each with a proposed fix. The most consequential: the documented parameters for `execute_contract_call` — the primary write path — do not match the schema the server accepts, and the same drift affects four more tools. One fix retires most of them: generate the docs page from `tools/list`, where the field descriptions are already better than the published ones.
 
 ---
 

@@ -267,14 +267,42 @@ The missing piece is `integrationId`, pointing at the credential's id from `/api
 
 ---
 
-## Still to come
+## 17. 🟠 The per-workflow MCP URL looks like a web page and isn't, and "no auth required" is not quite true
 
-Items below get filled in as they happen — key creation, first `execute_transfer`, Safe deployment, marketplace listing, x402 settlement, gas sponsorship.
+Two related things, both hit while preparing a demo of our own listing.
 
-- [x] Account signup → first `kh_` key
-- [ ] `kh` installed and authenticated on Windows
-- [x] First landed transaction (Sepolia) — [`0xb6afb213…`](https://sepolia.etherscan.io/tx/0xb6afb2133ed33b7a7192fbddfad9bd7761f329e5b4c0e46c184105082aeb50a4), via MCP, gas-sponsored
-- [ ] Safe deployed and linked
-- [ ] `Get Pending Transactions` returning real queue data
-- [ ] Marketplace listing + first paid x402 call
-- [ ] Mainnet gas sponsorship
+**The URL invites a browser.** A published listing advertises `https://app.keeperhub.com/mcp/w/<slug>`. That reads like a page — it is the thing you would paste into a browser to show someone your listing. Doing so returns:
+
+```json
+{"error":"invalid_token","error_description":"Missing or invalid access token"}
+```
+
+Correct behaviour for a JSON-RPC endpoint receiving an unauthenticated `GET`, but it reads as *"my listing is broken"* rather than *"wrong protocol"*. There is no human-facing counterpart advertised anywhere: `/marketplace`, `/marketplace/<slug>`, and `/api/mcp/workflows/<slug>` all 404. The one page that renders is `/workflows/<slug>`, which requires a session and is the editor rather than a listing view.
+
+**`get_workflow_listing` is documented as needing no auth. It does need auth.** The MCP tool list marks it `(no auth)`, but the transport rejects an unauthenticated `initialize` with `401` before any tool is reachable — so a caller with no key cannot discover a listing at all. Cross-org discovery is exactly what marketplace listings are for, and an agent that has not yet transacted has no reason to hold a `kh_` key.
+
+**And the two obvious guesses both fail differently.** After the MCP URL returns an OAuth error, the natural next attempt is `/workflows/<slug>` — which renders a full-page **"Workflow Not Found — the workflow you're looking for doesn't exist or has been deleted."** That route takes the internal workflow **id**, not the slug you just published under. So a builder checking on a listing they created minutes earlier is told, in the product's own UI, that it does not exist. There is a browsable marketplace at `/hub`, but nothing in the publish flow, the docs, or the tool output points there.
+
+**Proposed fix.**
+1. Serve a public, human-readable listing page at a stable path (`/hub/<slug>` — currently 404 — or `/marketplace/<slug>`), and put *that* URL in the post-publish output next to the MCP endpoint, labelled: "share this" vs "agents call this".
+2. Resolve slugs on `/workflows/<slug>` as well as ids, or say "no workflow with that id — did you mean the slug `<slug>`?" rather than implying deletion.
+2. Make the documented no-auth path actually work: allow `initialize` + `get_workflow_listing` unauthenticated, or expose a plain `GET /api/marketplace/<slug>` returning the same JSON. The data is already public by intent — it is what x402scan and friends index.
+3. Failing both, return a 200 with a short HTML explainer on a browser `GET` to `/mcp/w/<slug>` instead of an OAuth error.
+
+---
+
+## Where we actually got to
+
+Every milestone below was attempted. This is what happened to each — including the one that never worked.
+
+| Milestone | Outcome |
+|---|---|
+| Account signup → first `kh_` key | ✅ Same day, no friction worth logging. |
+| First landed transaction (Sepolia) | ✅ [`0xb6afb213…`](https://sepolia.etherscan.io/tx/0xb6afb2133ed33b7a7192fbddfad9bd7761f329e5b4c0e46c184105082aeb50a4) — via MCP, gas-sponsored, ~2h after signup. |
+| Safe deployed and guarded | ✅ [`0xe10b5A1c…`](https://sepolia.etherscan.io/address/0xe10b5A1c804b3caD6F3c44058e590dcFEC4020eC) — 2-of-3 Safe v1.4.1. |
+| `Get Pending Transactions` returning real queue data | ✅ Working, and the trigger for the whole product. Cost us item **#2** to discover the chain-support gap. |
+| Marketplace listing | ✅ `mirsad-safe-guard`, $0.05 USDC/call. Cost us items **#14, #15, #16, #17**. |
+| Gas sponsorship | ✅ Every MIRSAD transaction has been sponsored — on **Sepolia**, which the docs say is mainnet-only (item **#9**). |
+| **`kh` CLI installed on Windows** | ❌ **Never worked.** No Windows install path exists — item **#1**, and the single biggest blocker in this document. Everything above was done through MCP and REST instead. |
+
+That last row is the headline. A builder on Windows cannot use the CLI at all, and the docs do not say so — they simply offer three install methods, none of which run on the platform. We routed around it. Someone less stubborn closes the tab.
