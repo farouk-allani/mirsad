@@ -1,0 +1,16 @@
+{
+  "template": "basic",
+  "template_version": "0.1.0",
+  "created_with": "wayfinder-paths",
+  "created_at": "2026-09-02T21:14:58.993283Z",
+  "answers": {
+    "slug": "mirsad-guarded-aave",
+    "name": "MIRSAD Guarded Aave",
+    "version": "0.1.0",
+    "primary_kind": "policy",
+    "archetype": null,
+    "with_applet": false,
+    "with_skill": true,
+    "component_path": "scripts/main.py"
+  }
+}

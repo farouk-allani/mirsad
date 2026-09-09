@@ -1,0 +1,37 @@
+schema_version: "0.1"
+
+slug: mirsad-guarded-aave
+name: "MIRSAD Guarded Aave"
+version: "0.1.0"
+summary: "Deterministic pre-execution policy gate for a KeeperHub Aave V3 supply intent on Base."
+
+primary_kind: policy
+tags:
+  - policy
+  - mirsad
+  - aave-v3
+  - base
+
+components:
+  - id: "main"
+    kind: script
+    path: "scripts/main.py"
+
+skill:
+  enabled: true
+  source: generated
+  name: "mirsad-guarded-aave"
+  description: "Deterministic pre-execution policy gate for a KeeperHub Aave V3 supply intent on Base."
+  instructions: "skill/instructions.md"
+  runtime:
+    mode: thin
+    package: "wayfinder-paths"
+    version: "0.11.0"
+    python: ">=3.12,<3.13"
+    component: "main"
+    bootstrap: uv
+    fallback_bootstrap: pipx
+    prefer_existing_runtime: true
+    require_api_key: false
+    api_key_env: "WAYFINDER_API_KEY"
+    config_path_env: "WAYFINDER_CONFIG_PATH"

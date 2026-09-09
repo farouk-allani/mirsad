@@ -46,3 +46,8 @@ desktop.ini
 .next/
 out/
 .vercel/
+
+# v2
+v2/integrations/wayfinder/.venv/
+v2/.mirsad/
+v2/packages/*/dist/
