@@ -1,6 +1,7 @@
 packages:
   - "packages/*"
   - "apps/*"
+  - "v2/packages/*"
 
 # tsx ships esbuild, which needs its postinstall to place the platform binary.
 onlyBuiltDependencies:
