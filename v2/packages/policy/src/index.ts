@@ -13,9 +13,11 @@ export {
 } from "./schema.js";
 export type { Decision, Finding } from "./schema.js";
 export {
-  BASE_ADDRESSES,
-  BASE_CHAIN_ID,
+  AAVE_V3_MARKETS,
+  ONE_USDC,
   USDC_DECIMALS,
   aaveBasePolicy,
+  aaveMarket,
+  isAaveChainId,
 } from "./packs/aave-base.js";
-export type { AaveBasePolicyOptions } from "./packs/aave-base.js";
+export type { AaveBasePolicyOptions, AaveChainId } from "./packs/aave-base.js";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { decide, hashCanonical, verifyArtifact } from "./engine.js";
-import { BASE_ADDRESSES, BASE_CHAIN_ID, aaveBasePolicy } from "./packs/aave-base.js";
+import { aaveBasePolicy, aaveMarket } from "./packs/aave-base.js";
 import type { ApprovalArtifact } from "./schema.js";
 
 const ACTOR = "0x1f535539d5495f0e58ecb8f16006605acffd33f4";
@@ -10,18 +10,20 @@ const NOW = new Date("2026-09-09T12:00:00.000Z");
 const UINT256_MAX =
   "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
-const policy = aaveBasePolicy({ actor: ACTOR });
+const CHAIN_ID = 84532;
+const MARKET = aaveMarket(CHAIN_ID);
+const policy = aaveBasePolicy({ actor: ACTOR, chainId: CHAIN_ID });
 
 /** A proposal that should pass, so every test below differs from it in one way. */
 function intent(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     schemaVersion: "mirsad.intent.v1",
     source: { system: "wayfinder", runId: "run-1", path: "mirsad-guarded-aave@0.1.0" },
-    chainId: BASE_CHAIN_ID,
+    chainId: CHAIN_ID,
     protocol: "aave-v3",
     action: "supply",
-    target: BASE_ADDRESSES.aaveV3Pool,
-    token: BASE_ADDRESSES.usdc,
+    target: MARKET.pool,
+    token: MARKET.usdc,
     amountBaseUnits: "1000000",
     beneficiary: ACTOR,
     observations: { blockNumber: "50797452", observedAt: "2026-09-09T11:59:00.000Z" },
@@ -41,16 +43,16 @@ describe("decide, on an intent that satisfies the policy", () => {
     const approve = decision.artifact.calls.find((c) => c.leg === "approve");
     expect(approve).toEqual({
       leg: "approve",
-      contract: BASE_ADDRESSES.usdc,
+      contract: MARKET.usdc,
       functionName: "approve",
-      args: [BASE_ADDRESSES.aaveV3Pool, "1000000"],
+      args: [MARKET.pool, "1000000"],
     });
   });
 
   it("supplies to the actor named in the policy, not to anyone the intent names", () => {
     if (decision.verdict !== "ALLOW") throw new Error("expected ALLOW");
     const action = decision.artifact.calls.find((c) => c.leg === "action");
-    expect(action?.args).toEqual([BASE_ADDRESSES.usdc, "1000000", ACTOR, 0]);
+    expect(action?.args).toEqual([MARKET.usdc, "1000000", ACTOR, 0]);
   });
 
   it("expires the artifact after the policy's ttl", () => {
@@ -79,7 +81,7 @@ describe("decide, on an intent that violates the policy", () => {
     ["an amount over the cap", { amountBaseUnits: "100000000" }, "amount"],
     ["an unlimited amount", { amountBaseUnits: UINT256_MAX }, "amount"],
     ["a zero amount", { amountBaseUnits: "0" }, "amount"],
-    ["another chain", { chainId: 1 }, "chain"],
+    ["another chain", { chainId: 8453 }, "chain"],
     ["a lookalike pool", { target: ATTACKER }, "allowlist"],
     ["a different token", { token: ATTACKER }, "allowlist"],
     ["borrowing instead of supplying", { action: "borrow" }, "allowlist"],
@@ -107,7 +109,7 @@ describe("decide, on an intent that violates the policy", () => {
 
   it("reports every violation at once rather than the first", () => {
     const decision = decide({
-      intent: intent({ beneficiary: ATTACKER, amountBaseUnits: "100000000", chainId: 1 }),
+      intent: intent({ beneficiary: ATTACKER, amountBaseUnits: "100000000", chainId: 8453 }),
       policy,
       now: NOW,
     });
@@ -159,8 +161,8 @@ describe("decide, on an action nothing knows how to express", () => {
         {
           protocol: "aave-v3",
           action: "flashloan",
-          target: BASE_ADDRESSES.aaveV3Pool,
-          token: BASE_ADDRESSES.usdc,
+          target: MARKET.pool,
+          token: MARKET.usdc,
         },
       ],
     };
@@ -189,7 +191,7 @@ describe("verifyArtifact", () => {
       ...artifact,
       calls: artifact.calls.map((call) =>
         call.leg === "action"
-          ? { ...call, args: [BASE_ADDRESSES.usdc, "1000000", ATTACKER, 0] }
+          ? { ...call, args: [MARKET.usdc, "1000000", ATTACKER, 0] }
           : call,
       ),
     };
@@ -204,7 +206,7 @@ describe("verifyArtifact", () => {
       ...artifact,
       calls: artifact.calls.map((call) =>
         call.leg === "approve"
-          ? { ...call, args: [BASE_ADDRESSES.aaveV3Pool, "10000000"] }
+          ? { ...call, args: [MARKET.pool, "10000000"] }
           : call,
       ),
     };
