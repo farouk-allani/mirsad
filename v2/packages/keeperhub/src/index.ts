@@ -16,3 +16,5 @@ export type {
   PositionReader,
   PositionReading,
 } from "./postcondition.js";
+export { reconcile, unfinished } from "./reconcile.js";
+export type { Reconciliation } from "./reconcile.js";

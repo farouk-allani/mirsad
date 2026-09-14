@@ -2,7 +2,7 @@
   "name": "mirsad",
   "version": "0.1.0",
   "private": true,
-  "description": "MIRSAD — a watchtower agent that guards multisig treasuries against execution-layer compromise, executing onchain through KeeperHub.",
+  "description": "MIRSAD \u00e2\u20ac\u201d a watchtower agent that guards multisig treasuries against execution-layer compromise, executing onchain through KeeperHub.",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -15,11 +15,14 @@
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
     "agent": "pnpm --filter @mirsad/agent run dev",
-    "mirsad": "node apps/agent/dist/main.js",
+    "mirsad": "node v2/packages/agent/dist/cli.js",
     "doctor": "node apps/agent/dist/main.js doctor",
     "watch": "node apps/agent/dist/main.js watch",
     "audit": "node apps/agent/dist/main.js audit",
-    "publish:marketplace": "node apps/agent/dist/main.js publish"
+    "publish:marketplace": "node apps/agent/dist/main.js publish",
+    "v2:build": "pnpm -r --filter \"./v2/packages/**\" run build",
+    "v2:test": "pnpm -r --filter \"./v2/packages/**\" run test",
+    "v2:typecheck": "pnpm -r --filter \"./v2/packages/**\" run typecheck"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

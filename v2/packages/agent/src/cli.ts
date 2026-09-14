@@ -1,9 +1,11 @@
 /**
  * The operator's view.
  *
- *   plan     run the Wayfinder planner and print what it proposes
- *   check    plan, then decide against the policy. Never broadcasts.
- *   execute  the same decision, then act on it. Broadcasts.
+ *   plan       run the Wayfinder planner and print what it proposes
+ *   check      plan, then decide against the policy. Never broadcasts.
+ *   execute    the same decision, then act on it. Broadcasts.
+ *   journal    what previous runs left behind, finished or not
+ *   reconcile  ask KeeperHub about anything unfinished. Never broadcasts.
  *
  * `check` and `execute` run identical code up to the point of sending, so the
  * thing an operator inspected is the thing that later executes rather than a
@@ -17,6 +19,8 @@ import {
   KeeperHubPositionReader,
   McpTransport,
   RpcPositionReader,
+  reconcile,
+  unfinished,
 } from "@mirsad/keeperhub";
 import type { PositionReader } from "@mirsad/keeperhub";
 import { aaveBasePolicy, aaveMarket, isAaveChainId } from "@mirsad/policy";
@@ -114,6 +118,22 @@ async function main(): Promise<void> {
   const [command = "check", ...rest] = process.argv.slice(2);
   const flags = parseArgv(rest);
   const config = loadConfig(flags);
+  const journal = new FileJournal(config.journalPath);
+
+  if (command === "journal") {
+    const entries = await journal.all();
+    const open = await unfinished(journal);
+    console.log(JSON.stringify({ entries, unfinished: open.length }, null, 2));
+    return;
+  }
+  if (command === "reconcile") {
+    const transport = new McpTransport({ apiKey: config.apiKey });
+    await transport.connect();
+    const results = await reconcile(journal, transport);
+    console.log(JSON.stringify(results, null, 2));
+    if (results.some((r) => r.status !== "settled")) process.exitCode = 5;
+    return;
+  }
 
   const planned = await plan({
     interpreter: config.interpreter,
@@ -143,7 +163,7 @@ async function main(): Promise<void> {
     proposal: planned.proposal,
     policy,
     transport,
-    journal: new FileJournal(config.journalPath),
+    journal,
     readers: readersFor(config, transport),
     now: new Date(),
     broadcast: command === "execute",
