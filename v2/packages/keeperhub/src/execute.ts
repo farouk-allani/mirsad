@@ -69,16 +69,44 @@ export function buildRequest(call: ArtifactCall, chainId: number): ContractCallR
 }
 
 /**
- * The idempotency key is a pure function of the approved artifact.
+ * The idempotency key is a pure function of the proposal and the policy.
  *
- * Same approved action, same key, on any machine and after any crash, without
- * consulting stored state. Different approved action, different key, because
- * the artifact hash covers every argument. KeeperHub's own guidance is to keep
+ * Not of the artifact: an artifact carries `issuedAt`, so a process that
+ * crashes and decides the same proposal again would mint a new artifact, a
+ * new hash and a new key, and its resume would be a second send. The intent
+ * hash covers every argument that reaches the chain and the policy hash covers
+ * every rule that shaped them, so the pair identifies the operation exactly.
+ *
+ * Same proposal under the same policy, same key, on any machine and after any
+ * crash, without consulting stored state. KeeperHub's own guidance is to keep
  * the key and rebuild the body when an outcome is unknown; deriving the key
- * from the body's own hash makes that the only thing that can happen.
+ * from the inputs that determine the body makes that the only thing that can
+ * happen.
  */
-export function idempotencyKeyFor(artifactHash: string, leg: string): string {
-  return `mirsad:${artifactHash}:${leg}`;
+export function idempotencyKeyFor(
+  artifact: Pick<ApprovalArtifact, "intentHash" | "policyHash">,
+  leg: string,
+): string {
+  const operation = hashCanonical({
+    intentHash: artifact.intentHash,
+    policyHash: artifact.policyHash,
+  });
+  return `mirsad:${operation}:${leg}`;
+}
+
+/**
+ * Deliberate crash points, for proving resume rather than hoping to catch it.
+ *
+ * Set MIRSAD_FAULT to "after-prepared" or "after-sent" and the process exits
+ * at that point. Nothing in production sets it. This is how the crash-safety
+ * claim in the README is exercised, and it is safer than trying to time a
+ * Ctrl-C into a four-second window.
+ */
+function faultPoint(name: "after-prepared" | "after-sent"): void {
+  if (process.env.MIRSAD_FAULT === name) {
+    process.stderr.write(`MIRSAD_FAULT=${name}: exiting on purpose\n`);
+    process.exit(137);
+  }
 }
 
 interface SimulationResponse {
@@ -150,7 +178,7 @@ export async function executeArtifact(
 
     const request = buildRequest(call, artifact.chainId);
     const requestHash = hashCanonical(request);
-    const key = idempotencyKeyFor(artifactHash, call.leg);
+    const key = idempotencyKeyFor(artifact, call.leg);
 
     const prior = await journal.latest(key);
     if (prior && prior.requestHash !== requestHash) {
@@ -205,6 +233,7 @@ export async function executeArtifact(
         state: "prepared",
         at: new Date().toISOString(),
       });
+      faultPoint("after-prepared");
     }
 
     let submitted: SubmitResponse;
@@ -236,6 +265,7 @@ export async function executeArtifact(
       at: new Date().toISOString(),
       executionId,
     });
+    faultPoint("after-sent");
 
     const settled = await pollUntilSettled(
       transport,

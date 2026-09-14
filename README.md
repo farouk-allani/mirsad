@@ -36,11 +36,19 @@ One hex digit changed in the beneficiary. The planner's rationale — 3.79% supp
 
 ## Executed through KeeperHub
 
-| What | Chain | Transaction |
-|---|---|---|
-| KeeperHub wallet funds itself from Aave's testnet faucet, gas sponsored, through the same execution path the product uses | Base Sepolia | [`0xb8089c4b…`](https://sepolia.basescan.org/tx/0xb8089c4b26993b741b2699dacd7c2d796499476cd8111c684a2063c3436537ee) |
+All on Base Sepolia, all gas-sponsored, all through `execute_contract_call` with a preflight and an idempotency key. The wallet's ETH balance was 0 before and 0 after every one of them.
 
-That transaction is a meta-transaction: the relayer `0xdcf4bac4…` paid, the forwarder `0x5af5194b…` (the same forwarder as on Ethereum Sepolia) delivered, and the organization wallet's balance went from 0 ETH to 0 ETH. Preflight estimated 88,834 gas; the forwarder path used 149,811. Do not budget gas for a sponsored write off the simulation.
+| Run | approve | supply | Postcondition |
+|---|---|---|---|
+| Wallet funds itself from Aave's faucet through the same execution path | [`0xb8089c4b…`](https://sepolia.basescan.org/tx/0xb8089c4b26993b741b2699dacd7c2d796499476cd8111c684a2063c3436537ee) | | 0 → 10 USDC |
+| First full pipeline run | [`0xeff83b9a…`](https://sepolia.basescan.org/tx/0xeff83b9a113cfcc308b29e4375f199258e4f76f149c4f0f848e45ca61e3e3aca) | [`0x671aa688…`](https://sepolia.basescan.org/tx/0x671aa688d6a6190834646984e59e45851dbbc2423ded423cfaf1a9a696cdc58d) | 0 → 999,999 aUSDC |
+| Second run, on top of an existing position | [`0x0045f3dc…`](https://sepolia.basescan.org/tx/0x0045f3dc9121e76f27a64f4e7cf6182c2149ab3fe71fddde2060e5e391f21c7c) | [`0x97ff6844…`](https://sepolia.basescan.org/tx/0x97ff68447413e966a36fc1367cb735f0d7f25aa5847571236b669ac199291962) | 999,999 → 1,999,998; both sources agree |
+| **Killed after `prepared`, before any send; resumed** | [`0x9178de03…`](https://sepolia.basescan.org/tx/0x9178de03a6b653e1d40fcf3acdac267d1928f742ff049c1385d1b491500550e8) | [`0xbb060101…`](https://sepolia.basescan.org/tx/0xbb060101addb3295073daa737c954878227a798930f7652f380004890fc88736) | same key on resume, no second preflight |
+| **Killed after the approve was broadcast, before its receipt; reconciled; resumed** | [`0x9f4b27df…`](https://sepolia.basescan.org/tx/0x9f4b27dfab28cca5769372d2eca071d99042bcb9f021e2852ac78f5ea1ce057e) | [`0x4627dfa1…`](https://sepolia.basescan.org/tx/0x4627dfa12cc972ba6d9201d8ffbfad1665729a550e0d4a2ca409b229267353fe) | approve reused from the journal; exactly one on chain |
+
+The first run found two bugs, which is what a first run is for. The report crashed on printing a `bigint` — after the sends, so the journal was the only record of what happened, and it was complete. And Aave's scaled-balance arithmetic rounds a 1 USDC supply down to 999,999 on the way back; the postcondition had said "may never fall short" and would have failed a correct execution. It now tolerates two units of rounding and still fails a real shortfall.
+
+The faucet mint is a meta-transaction: the relayer `0xdcf4bac4…` paid, the forwarder `0x5af5194b…` (the same forwarder as on Ethereum Sepolia) delivered. Preflight estimated 88,834 gas; the forwarder path used 149,811. Do not budget gas for a sponsored write off the simulation.
 
 Every transaction this repository has ever executed through KeeperHub — including the four onchain vetoes from [v1](docs/LEGACY.md) — is listed with its explorer link. There are no screenshots.
 
@@ -94,9 +102,13 @@ The executor's outcomes separate *did not execute* from *do not know*. Collapsin
 
 Success additionally requires a **postcondition**: the aToken balance is read before and after from two sources that share no code path — Aave's reserve data through KeeperHub, and `balanceOf` on the aToken over plain RPC. A settled receipt with an unmoved position is `executed` with `postcondition.ok: false`, and a disagreement between the two readings is resolved against us.
 
-A journal is written as `prepared` before any send, so a process killed between persisting and broadcasting leaves proof that a broadcast may have happened. `pnpm mirsad reconcile` asks KeeperHub about anything unfinished and never sends; re-running `execute` with the same artifact resumes under the same key and skips legs that already settled.
+A journal is written as `prepared` before any send, so a process killed between persisting and broadcasting leaves proof that a broadcast may have happened. `pnpm mirsad reconcile` asks KeeperHub about anything unfinished and never sends; re-running `execute` with the same proposal resumes under the same key and skips legs that already settled.
 
-Forty tests cover this: revert, 503, 429 with `Retry-After`, 409 conflict, dropped socket, never-settles, settled-failed, a crash between prepare and send, an already-settled leg, and a rebuilt request that no longer matches the key's bound body.
+The key is derived from the proposal and the policy, not from the artifact. An artifact carries `issuedAt`, so a process that crashed and decided the same proposal again would mint a new artifact and a new key, and its resume would be a second send. That was the design until the first crash test; the table above is the version after.
+
+Crashes are injected, not hoped for: `MIRSAD_FAULT=after-prepared` or `after-sent` exits the process at that point. Nothing in production sets it. The two killed runs in the table used it.
+
+Forty-three tests cover this: revert, 503, 429 with `Retry-After`, 409 conflict, dropped socket, never-settles, settled-failed, a crash between prepare and send, an already-settled leg, and a rebuilt request that no longer matches the key's bound body.
 
 ---
 
@@ -125,13 +137,14 @@ pnpm mirsad plan                          # what Wayfinder proposes, and why
 pnpm mirsad check                         # decide; never broadcasts
 pnpm mirsad check --beneficiary 0xdead…   # a compromised planner
 pnpm mirsad execute --amount 1            # decide, simulate, send, prove
+pnpm mirsad execute --proposal saved.json # the same, from a saved proposal
 pnpm mirsad journal                       # what previous runs left behind
 pnpm mirsad reconcile                     # ask KeeperHub about anything unfinished
 ```
 
 `check` and `execute` run identical code up to the point of sending. The thing you inspected is the thing that executes.
 
-Tests: `pnpm v2:test` — 105 across the policy engine, the executor and the planner boundary, none of which touch the network.
+Tests: `pnpm v2:test` — 108 across the policy engine, the executor and the planner boundary, none of which touch the network.
 
 ---
 

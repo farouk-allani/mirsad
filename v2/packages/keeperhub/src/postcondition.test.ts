@@ -30,6 +30,26 @@ describe("checkSupplyPostcondition", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("tolerates Aave's one-unit scaled-balance rounding on the way back", () => {
+    // Observed on Base Sepolia: a 1 USDC supply read back as 999,999 aUSDC.
+    const result = checkSupplyPostcondition({
+      before: [kh(0n), rpc(0n)],
+      after: [kh(999_999n), rpc(999_999n)],
+      expectedIncreaseBaseUnits: "1000000",
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("does not let rounding tolerance excuse a real shortfall", () => {
+    const result = checkSupplyPostcondition({
+      before: [kh(0n), rpc(0n)],
+      after: [kh(999_000n), rpc(999_000n)],
+      expectedIncreaseBaseUnits: "1000000",
+    });
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/short of/);
+  });
+
   it("fails when the position did not move, even on a settled receipt", () => {
     const result = checkSupplyPostcondition({
       before: [kh(0n), rpc(0n)],

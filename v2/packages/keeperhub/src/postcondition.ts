@@ -106,9 +106,16 @@ export interface CheckSupplyOptions {
   expectedIncreaseBaseUnits: string;
   /**
    * aToken balances accrue continuously, so the observed increase may exceed
-   * the supply by a few units between the two reads. It may never fall short.
+   * the supply by a few units between the two reads.
    */
-  toleranceBaseUnits?: bigint;
+  maxExcessBaseUnits?: bigint;
+  /**
+   * Aave stores a scaled balance and multiplies it back by the liquidity
+   * index on read, and that division rounds down. A 1 USDC supply reads back
+   * as 999,999 on Base Sepolia. One or two units short is arithmetic; more
+   * than that is a supply that did not land as authorised.
+   */
+  maxShortfallBaseUnits?: bigint;
 }
 
 function lowest(readings: PositionReading[]): bigint {
@@ -125,7 +132,13 @@ function agree(readings: PositionReading[]): boolean {
 }
 
 export function checkSupplyPostcondition(options: CheckSupplyOptions): Postcondition {
-  const { before, after, expectedIncreaseBaseUnits, toleranceBaseUnits = 1000n } = options;
+  const {
+    before,
+    after,
+    expectedIncreaseBaseUnits,
+    maxExcessBaseUnits = 1000n,
+    maxShortfallBaseUnits = 2n,
+  } = options;
   const expected = BigInt(expectedIncreaseBaseUnits);
 
   // The most conservative reading of each side, so a disagreement cannot be
@@ -136,10 +149,10 @@ export function checkSupplyPostcondition(options: CheckSupplyOptions): Postcondi
   let ok = true;
   let message = `position increased by ${observed} base units, as authorised`;
 
-  if (observed < expected) {
+  if (observed < expected - maxShortfallBaseUnits) {
     ok = false;
     message = `position increased by ${observed}, short of the ${expected} supplied`;
-  } else if (observed - expected > toleranceBaseUnits) {
+  } else if (observed - expected > maxExcessBaseUnits) {
     ok = false;
     message = `position increased by ${observed}, more than the ${expected} supplied`;
   } else if (!sourcesAgree) {

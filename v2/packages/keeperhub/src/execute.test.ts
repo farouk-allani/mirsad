@@ -329,7 +329,7 @@ describe("resuming after a crash", () => {
 
     // The state a process killed between persisting and broadcasting leaves.
     await journal.append({
-      idempotencyKey: idempotencyKeyFor(artifactHash, "approve"),
+      idempotencyKey: idempotencyKeyFor(artifact, "approve"),
       artifactHash,
       leg: "approve",
       requestHash: hashCanonical(request),
@@ -349,18 +349,18 @@ describe("resuming after a crash", () => {
   });
 
   it("uses the same idempotency key it would have used before the crash", async () => {
-    const { artifactHash } = approvedArtifact();
+    const { artifact } = approvedArtifact();
     const { calls } = await run(happyPath, { journal });
     const send = calls.find(
       (c) => c.name === "execute_contract_call" && c.args.simulate !== true,
     );
-    expect(send?.args.idempotency_key).toBe(idempotencyKeyFor(artifactHash, "approve"));
+    expect(send?.args.idempotency_key).toBe(idempotencyKeyFor(artifact, "approve"));
   });
 
   it("skips a leg that already settled rather than sending it twice", async () => {
     const { artifact, artifactHash } = approvedArtifact();
     await journal.append({
-      idempotencyKey: idempotencyKeyFor(artifactHash, "approve"),
+      idempotencyKey: idempotencyKeyFor(artifact, "approve"),
       artifactHash,
       leg: "approve",
       requestHash: hashCanonical(buildRequest(artifact.calls[0]!, artifact.chainId)),
@@ -382,9 +382,9 @@ describe("resuming after a crash", () => {
   });
 
   it("refuses when the rebuilt request no longer matches the key's bound body", async () => {
-    const { artifactHash } = approvedArtifact();
+    const { artifact, artifactHash } = approvedArtifact();
     await journal.append({
-      idempotencyKey: idempotencyKeyFor(artifactHash, "approve"),
+      idempotencyKey: idempotencyKeyFor(artifact, "approve"),
       artifactHash,
       leg: "approve",
       requestHash: `0x${"f".repeat(64)}`,
@@ -400,20 +400,48 @@ describe("resuming after a crash", () => {
 });
 
 describe("the idempotency key", () => {
-  it("is a pure function of the artifact hash and the leg", () => {
-    const { artifactHash } = approvedArtifact();
-    expect(idempotencyKeyFor(artifactHash, "approve")).toBe(
-      idempotencyKeyFor(artifactHash, "approve"),
-    );
-    expect(idempotencyKeyFor(artifactHash, "approve")).not.toBe(
-      idempotencyKeyFor(artifactHash, "action"),
+  it("is a pure function of the proposal, the policy and the leg", () => {
+    const { artifact } = approvedArtifact();
+    expect(idempotencyKeyFor(artifact, "approve")).toBe(idempotencyKeyFor(artifact, "approve"));
+    expect(idempotencyKeyFor(artifact, "approve")).not.toBe(
+      idempotencyKeyFor(artifact, "action"),
     );
   });
 
-  it("differs for a different approved action", () => {
-    const { artifact, artifactHash } = approvedArtifact();
-    const other = hashCanonical({ ...artifact, chainId: 8453 });
-    expect(idempotencyKeyFor(artifactHash, "approve")).not.toBe(
+  /**
+   * The property resume depends on. A process that crashed and decided the
+   * same proposal again gets a fresh artifact with a fresh issuedAt and a
+   * fresh artifact hash. It must still land on the key the first run bound.
+   */
+  it("survives the same proposal being decided again after a crash", () => {
+    const first = approvedArtifact();
+    const later = decide({
+      intent: {
+        schemaVersion: "mirsad.intent.v1",
+        source: { system: "wayfinder", runId: "run-1", path: "mirsad-guarded-aave@0.1.0" },
+        chainId: CHAIN_ID,
+        protocol: "aave-v3",
+        action: "supply",
+        target: MARKET.pool,
+        token: MARKET.usdc,
+        amountBaseUnits: "1000000",
+        beneficiary: ACTOR,
+        observations: { blockNumber: "46610337", observedAt: "2026-09-09T11:59:30.000Z" },
+      },
+      policy,
+      now: new Date(NOW.getTime() + 45_000),
+    });
+    if (later.verdict !== "ALLOW") throw new Error("fixture must allow");
+    expect(later.artifactHash).not.toBe(first.artifactHash);
+    expect(idempotencyKeyFor(later.artifact, "approve")).toBe(
+      idempotencyKeyFor(first.artifact, "approve"),
+    );
+  });
+
+  it("differs for a different proposal", () => {
+    const { artifact } = approvedArtifact();
+    const other = { ...artifact, intentHash: hashCanonical({ different: true }) };
+    expect(idempotencyKeyFor(artifact, "approve")).not.toBe(
       idempotencyKeyFor(other, "approve"),
     );
   });

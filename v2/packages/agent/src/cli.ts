@@ -10,8 +10,13 @@
  * `check` and `execute` run identical code up to the point of sending, so the
  * thing an operator inspected is the thing that later executes rather than a
  * separate rehearsal of it.
+ *
+ * `--proposal <file>` replaces the planner with a saved proposal. The policy
+ * does not know or care where a proposal came from, and the freshness rule
+ * still applies, so a stale file is blocked like a stale planner.
  */
 
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import {
@@ -42,6 +47,11 @@ const DEFAULT_RPC: Record<number, string> = {
   8453: "https://mainnet.base.org",
   84532: "https://sepolia.base.org",
 };
+
+/** Balances are bigint in memory and decimal strings on the wire. */
+function bigintAsString(_key: string, value: unknown): unknown {
+  return typeof value === "bigint" ? value.toString() : value;
+}
 
 function required(name: string): string {
   const value = process.env[name];
@@ -135,12 +145,15 @@ async function main(): Promise<void> {
     return;
   }
 
-  const planned = await plan({
-    interpreter: config.interpreter,
-    script: config.script,
-    args: plannerArgs(config, flags),
-    env: { MIRSAD_ACTOR: config.actor },
-  });
+  const proposalFile = flags.get("proposal");
+  const planned = proposalFile
+    ? (JSON.parse(await readFile(resolve(proposalFile), "utf8")) as Awaited<ReturnType<typeof plan>>)
+    : await plan({
+        interpreter: config.interpreter,
+        script: config.script,
+        args: plannerArgs(config, flags),
+        env: { MIRSAD_ACTOR: config.actor },
+      });
 
   if (command === "plan") {
     console.log(JSON.stringify(planned, null, 2));
@@ -169,7 +182,7 @@ async function main(): Promise<void> {
     broadcast: command === "execute",
   });
 
-  console.log(JSON.stringify({ rationale: planned.rationale, ...report }, null, 2));
+  console.log(JSON.stringify({ rationale: planned.rationale, ...report }, bigintAsString, 2));
   if (report.decision.verdict === "BLOCK") process.exitCode = 2;
   if (report.outcome && report.outcome.kind !== "executed") process.exitCode = 3;
   if (report.postcondition && !report.postcondition.ok) process.exitCode = 4;
