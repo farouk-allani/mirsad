@@ -1,250 +1,173 @@
 # MIRSAD
 
-**A watchtower for multisig treasuries. It reads the bytes your signers are about to approve, and when they don't match the story, it stops the transaction onchain — through [KeeperHub](https://keeperhub.com).**
+**A policy gate between an agent that plans and the infrastructure that executes. A Wayfinder Path proposes a DeFi action; MIRSAD binds it to one exact, hashed, expiring artifact; [KeeperHub](https://keeperhub.com) executes that artifact and nothing else.**
 
-Bybit lost $1.4 billion to a signing interface that displayed one transaction and produced another. Resolv lost $25 million to a compromised deployment key. In both cases the contracts were correct and the signatures were valid. What failed was the layer between deciding and executing.
+KeeperHub's pitch for the agent economy is that an agent composes a workflow, *you review it*, you dry-run it, and then that exact workflow executes — nothing is inferred at execution time. MIRSAD is what *"you review it"* becomes when the reviewer is a policy signed once in advance rather than a person reading calldata at two in the morning. The human signs a small, readable policy. Not a blank cheque to an agent.
 
-Most treasury agents ask *is this position unhealthy?* MIRSAD asks the question that actually loses money:
-
-> **Is the transaction your CFO is about to sign the transaction they think it is?**
-
-And when the answer is no, it does something about it. Not an alert. A revert.
+> `مِرْصاد` — the watchpost; the place from which one lies in wait.
 
 ---
 
 ## The claim, demonstrated
 
-A 2-of-3 Safe on Sepolia holding 0.05 ETH. An attacker queues a drain. **All three owners sign it** — one more than the threshold requires.
+The planner is a real [Wayfinder Path](v2/integrations/wayfinder/paths/mirsad-guarded-aave/) reading the live Aave V3 market on Base through Wayfinder's official adapter. Same Path, same run, four proposals:
 
 ```
-$ pnpm hardhat run scripts/demo-veto.ts --network sepolia
+$ pnpm mirsad check --amount 1
+  ALLOW   artifact 0xa662600979eff84d7ce388188750b55f93d393b1ac369f6f93332aadd899b041
+          approve(pool, 1000000)
+          supply(USDC, 1000000, 0x1f53…33f4, 0)
+          expires 2026-09-09T21:59:08Z
 
-Safe      : 0xe10b5A1c804b3caD6F3c44058e590dcFEC4020eC
-threshold : 2 of 3
-balance   : 0.05 ETH
+$ pnpm mirsad check --amount 1 --beneficiary 0xdEAD…bEEF
+  BLOCK   beneficiary   position would accrue to 0xdead…beef; policy names 0x1f53…33f4
+          quiet: true   (zero calls to KeeperHub)
 
-[1] attacker queues a drain of 0.04 ETH to 0x…dEaD
-    safeTxHash 0x15e041634fba96a03eb37b4629b7f1985af0ac2ba042dccd6e1dc6ce27786f00
+$ pnpm mirsad check --amount 1000
+  BLOCK   amount        1000000000 exceeds the cap of 5000000 base units
 
-[2] MIRSAD verdict: VETO
-    writing onchain via KeeperHub...
-    completed  gas 116320  sponsored=true
-    https://sepolia.etherscan.io/tx/0xd367d4e900dc92a6f95458a4388264b53dff89e887de23a5916a0609ef712d55
-
-[3] registry.isVetoed(safeTxHash) = true
-
-[4] all 3 owners sign (threshold is 2)...
-    REVERTED: MirsadVeto(0x15e04163…6f00)
-
-    balance before : 0.05 ETH
-    balance after  : 0.05 ETH
-
-    The treasury did not move. Three signatures were not enough.
+$ pnpm mirsad check --symbol EURC
+  BLOCK   allowlist     no policy entry permits aave-v3/supply … with token 0x60a3…db42
 ```
 
-That last line is the entire product. Everything below explains how it is true.
+One hex digit changed in the beneficiary. The planner's rationale — 3.79% supply APY, $20M liquidity, market active — was identical in all four. None of it reached KeeperHub in the three that were blocked, because nothing reaches KeeperHub before the policy has seen it.
 
 ---
 
-## Live on Sepolia
+## Executed through KeeperHub
 
-Both contracts are verified — read the guard's logic yourself rather than trusting this document.
-
-| | |
-|---|---|
-| `MirsadVerdictRegistry` | [`0xe51388ac0CB9Bcc36548E2D0F163055FaE402256`](https://sepolia.etherscan.io/address/0xe51388ac0CB9Bcc36548E2D0F163055FaE402256#code) |
-| `MirsadGuard` | [`0x997E4CA7e93696bA11d65cC390A1CEC3aC149E04`](https://sepolia.etherscan.io/address/0x997E4CA7e93696bA11d65cC390A1CEC3aC149E04#code) |
-| Guarded Safe | [`0xe10b5A1c804b3caD6F3c44058e590dcFEC4020eC`](https://app.safe.global/transactions/queue?safe=sep:0xe10b5A1c804b3caD6F3c44058e590dcFEC4020eC) — 2-of-3, real Safe v1.4.1 |
-
-**Transactions MIRSAD executed through KeeperHub**, all gas-sponsored, all found and blocked **with no human in the loop**:
-
-| Attack caught | Veto written onchain | Gas |
+| What | Chain | Transaction |
 |---|---|---|
-| **Guard removal** — an attempt to remove MIRSAD's own guard, filed as *"Routine maintenance: clear a deprecated module reference."* | [`0x500e8f4e…`](https://sepolia.etherscan.io/tx/0x500e8f4ebcce4fefa4c188f126f1b1ac3f83c07ab39f2ecf6e96ed5bd793ad91) | 116332 |
-| **Hidden delegatecall** — the Bybit shape: foreign code executed against the Safe's own storage. | [`0x2f5f42bf…`](https://sepolia.etherscan.io/tx/0x2f5f42bfd89c4dafb426ddd2dd84676c8c9f4255c54f4793cbd902ca9f8b7419) | 116332 |
-| **Silent owner swap** — disguised as *"Rotate the hardware wallet for owner 3, per our key-rotation policy."* | [`0x3e037e27…`](https://sepolia.etherscan.io/tx/0x3e037e27485252876778e4f0a351015697adf2a5e00bd57bc46ccc6a0b1b1640) | 116320 |
-| **Treasury drain** — 80% of the Safe's balance to an address outside the address book. | [`0xd367d4e9…`](https://sepolia.etherscan.io/tx/0xd367d4e900dc92a6f95458a4388264b53dff89e887de23a5916a0609ef712d55) | 116320 |
+| KeeperHub wallet funds itself from Aave's testnet faucet, gas sponsored, through the same execution path the product uses | Base Sepolia | [`0xb8089c4b…`](https://sepolia.basescan.org/tx/0xb8089c4b26993b741b2699dacd7c2d796499476cd8111c684a2063c3436537ee) |
 
-Each of those four is checkable without trusting this document. `isVetoed(safeTxHash)` returns `true` on the registry for all four, and the `reasonHash` in each transaction's calldata is byte-for-byte the record hash in `data/audit.jsonl` — the onchain veto and the reasoning that produced it are cryptographically linked.
+That transaction is a meta-transaction: the relayer `0xdcf4bac4…` paid, the forwarder `0x5af5194b…` (the same forwarder as on Ethereum Sepolia) delivered, and the organization wallet's balance went from 0 ETH to 0 ETH. Preflight estimated 88,834 gas; the forwarder path used 149,811. Do not budget gas for a sponsored write off the simulation.
+
+Every transaction this repository has ever executed through KeeperHub — including the four onchain vetoes from [v1](docs/LEGACY.md) — is listed with its explorer link. There are no screenshots.
 
 ---
 
 ## How it works
 
+Three documents, one of them trusted.
+
+**`ExecutionIntent`** is what the planner proposes. Chain, protocol, action, target contract, token, amount in base units, beneficiary, and the block it observed. It is untrusted. Every field may be wrong, stale or hostile, and the schema is strict: an unrecognised field is a parse failure, and a parse failure is a BLOCK.
+
+**`Policy`** is what the operator agreed to, once, in advance. An exact list of permitted `(protocol, action, target, token)` tuples, an amount cap, the one address a position may accrue to, and how stale an observation may be. It is the only trusted input. It is hashed, and the hash travels with every decision.
+
+**`ApprovalArtifact`** is what an ALLOW is worth: the exact calls, with their arguments, hashed, with a two-minute expiry. Not a permission — a transaction, described precisely enough to be rebuilt byte for byte.
+
 ```
-Safe pending queue
-   │  poll (KeeperHub Safe plugin, via a KeeperHub workflow)
-   ▼
-deterministic rules ──────────► findings
-   │                               │
-   ▼                               │
-intent-drift classifier ───────────┤
-   │                               ▼
-   │                          verdict: ALLOW | WARN | VETO
-   │                               │
-   └── audit trail ◄───────────────┤  hash-chained, tamper-evident
-                                   │
-                          VETO ────┴──► KeeperHub execute_contract_call
-                                             │
-                                             ▼
-                                   MirsadVerdictRegistry.setVerdict()
-                                             │
-                                             ▼
-                              MirsadGuard.checkTransaction() reverts
-                              inside Safe.execTransaction — regardless
-                              of how many owners signed
+Wayfinder Path ──proposal──► policy engine ──artifact──► executor ──► KeeperHub ──► Aave V3
+(no secrets)                 (pure, no I/O)             (asserts hash,
+                                                         then sends)
 ```
 
-A Safe guard is a native Safe primitive: install it once with `setGuard`, and every `execTransaction` must pass through it. MIRSAD writes verdicts to a registry; the guard reads that registry. Signatures never enter into it.
+Two properties carry the design.
 
-**What it detects.** Delegatecall. Owner additions, removals, and swaps. Threshold changes. Module enablement — which lets funds move with *no signatures at all*. Guard and fallback-handler tampering. Effectively-unlimited token approvals. Payments to addresses outside the treasury's address book. Proportional drains. Proxy upgrades.
+**The thing simulated is the thing sent.** The executor rebuilds its KeeperHub request from the artifact and refuses before building anything if the artifact does not hash to the value the decision published. [Three tests](v2/packages/keeperhub/src/execute.test.ts) edit a settled artifact in transit — beneficiary, approval amount, chain — and assert zero calls to KeeperHub.
 
-**What the model adds.** Rules see structure; they cannot read a proposal and tell you the calldata contradicts it. Given a transaction described as *"Routine monthly payment of 5,000 USDC to our auditor, Trail of Bits"* whose calldata is `approve(0x…dEaD, MAX_UINT256)`, the classifier returns:
+**The idempotency key is a pure function of the artifact hash.** `mirsad:<artifactHash>:<leg>`. The same approved action gets the same key on any machine, after any crash, without consulting stored state; a different action gets a different key, because the hash covers every argument. KeeperHub's own guidance is to keep the key and rebuild the body when an outcome is unknown, since rotating it escapes the in-flight guard and can broadcast twice. Deriving the key from the body's own hash makes that the only reachable behaviour.
 
-> *Stated intent is a 5,000 USDC payment to Trail of Bits, but calldata is an approval — not a transfer — of an unlimited allowance to an unrelated address. The intended recipient and amount are not reflected in the calldata.*
+Some smaller decisions that follow from those:
 
-That sentence is what a treasurer reads before deciding not to sign.
+- MIRSAD **derives** the ERC-20 approval, it does not accept one. An unlimited allowance is not something a planner can ask for; only a large *amount* could reach one, and the cap catches that.
+- ABIs are pinned in the executor, not carried in the artifact. An ABI supplied by a planner is a planner deciding what a function means.
+- A permitted action with no call builder is refused. Widening the allowlist cannot widen what executes.
+- Amounts never travel as JavaScript numbers. `0.1` and `0.10` are one value and two byte strings, and KeeperHub's idempotency documentation names that exact drift as a cause of a 409 against a key already bound to the earlier body.
+- The planner runs in an environment that is built, not inherited. Wayfinder's local runner hands Path code `os.environ.copy()`; a community-authored Path must not be able to read an organization key, and [a test](v2/packages/agent/src/plan.test.ts) plants one and asserts it does not arrive.
 
 ---
 
-## Three decisions worth arguing about
+## When it is not the happy path
 
-### The model cannot veto. Only rules can.
+The executor's outcomes separate *did not execute* from *do not know*. Collapsing the second into the first is how a retry becomes a second transaction.
 
-Every model finding is tagged `source: "model"`, and the verdict function clamps a model VETO down to WARN — in code, not by convention:
+| Outcome | Meaning | Correct next action |
+|---|---|---|
+| `executed` | Every leg settled with a receipt, and the position read back as expected | None |
+| `artifact-invalid` | Hash mismatch, expired, or a function with no pinned ABI | Re-evaluate; nothing was sent |
+| `simulation-reverted` | KeeperHub's preflight says it reverts | Nothing was sent |
+| `unavailable` | 429 or 5xx *before* the send; `Retry-After` is surfaced | Retry later, same request |
+| `request-drift` | The rebuilt body no longer matches the one bound to the key | Stop. Do not rotate the key |
+| `rejected` | Definite refusal after a clean preflight, or settled as failed | A person decides |
+| `unconfirmed` | 5xx or dropped socket *on* the send; status never settled | Same key; `reconcile` |
 
-```ts
-const severity = f.source === "model" && f.severity === Verdict.Veto ? Verdict.Warn : f.severity;
-```
+Success additionally requires a **postcondition**: the aToken balance is read before and after from two sources that share no code path — Aave's reserve data through KeeperHub, and `balanceOf` on the aToken over plain RPC. A settled receipt with an unmoved position is `executed` with `postcondition.ok: false`, and a disagreement between the two readings is resolved against us.
 
-An LLM is never the only thing standing between a treasury and a drain. It adds reasoning to a decision deterministic code already reached. There is a test named *"the model can never veto alone."* If the classifier's provider is down, MIRSAD keeps working — rules-only is a supported mode, not a degraded one, and there is a test that points the classifier at a dead socket and asserts the loop survives.
+A journal is written as `prepared` before any send, so a process killed between persisting and broadcasting leaves proof that a broadcast may have happened. `pnpm mirsad reconcile` asks KeeperHub about anything unfinished and never sends; re-running `execute` with the same artifact resumes under the same key and skips legs that already settled.
 
-### The guard fails **open**.
-
-If MIRSAD has never assessed a transaction — we were offline, or it was queued and executed inside one polling interval — execution proceeds.
-
-This is deliberate and it is the uncomfortable choice. A guard that failed closed would brick the treasury the moment the watcher went offline, converting our downtime into their outage. That is a worse failure than the one we prevent. Operators who disagree can set `requireAssessment`, and there is a test for each behaviour.
-
-### Verdicts are write-once.
-
-The registry refuses to overwrite an existing verdict with a different one. An attacker who compromises the writer key cannot quietly un-veto a pending drain. Identical replays are accepted silently, so retries and idempotent re-writes stay safe.
-
-This surfaced during development as an apparent bug — the loop kept failing to re-veto an already-vetoed transaction. It was the protection working. The fix was to read `isVetoed` before writing and treat *already enforced* as success.
+Forty tests cover this: revert, 503, 429 with `Retry-After`, 409 conflict, dropped socket, never-settles, settled-failed, a crash between prepare and send, an already-settled leg, and a rebuilt request that no longer matches the key's bound body.
 
 ---
 
-## The audit trail is evidence, not a log file
+## What this does not protect
 
-A treasury-security tool whose own records can be edited afterwards proves nothing. Each entry carries the hash of the entry before it.
-
-```
-$ pnpm run audit
-
-#6  2026-08-12T09:22:20.962Z  VETO
-  safeTx   0xa0e190c0ce196bae806705495f5f3fe73ad17632929096844af896a6ae6496a1
-  reason   0x11b418185bd0c94fb74d9f802c9a0680022e1c5a0344590693e1964538e2064c
-  [VETO] guard-change (rule) Transaction REMOVES the Safe's transaction guard.
-  onchain  https://sepolia.etherscan.io/tx/0x500e8f4e…ad91  gas=116332
-
-chain verified: 10 records, unbroken.
-```
-
-Editing, deleting, or reordering history breaks the chain, and `verify()` names the first entry that fails. Corrupting the file is reported as a chain break rather than crashing the reader — a crash would hide the rest of the log from whoever is investigating.
-
-The `reason` hash is **exactly** the `reasonHash` committed onchain by the veto. Anyone holding this file can verify that an onchain verdict matches the reasoning that produced it — the trail from the runs above is committed at [`docs/audit-trail.jsonl`](docs/audit-trail.jsonl), so you can check that equality against Sepolia yourself without running anything. A test pins that equality, and another proves execution results are excluded from the hash — they are learned after the verdict, so including them would make the onchain commitment unverifiable.
+- **The policy itself.** If the operator signs a policy naming the attacker as beneficiary, MIRSAD will faithfully enforce it. The policy file is the thing to guard.
+- **Anything outside the Path.** Wayfinder has local signing and broadcast utilities. MIRSAD gates *this* Path's execution; it is not framework-wide enforcement, and the README does not claim otherwise.
+- **State between check and send.** KeeperHub's preflight is a point-in-time `eth_call`. The two-minute artifact expiry and the postcondition bound the damage; they do not eliminate it.
+- **The operator's KeeperHub account.** Whoever holds the `kh_` key can execute anything. MIRSAD assumes that key is held by the operator's trusted process and never by the planner.
+- **Protocols it has not been taught.** One protocol pack exists: Aave V3 supply of USDC on Base. Everything else is `unsupported-action`.
 
 ---
 
-## Reproduce it
+## Run it
 
 ```bash
 pnpm install
-cp .env.example .env          # KeeperHub kh_ key, Safe API key, RPC
-pnpm build
-pnpm run doctor                   # reports exactly what is still missing
+pnpm v2:build
+python3.12 -m venv v2/integrations/wayfinder/.venv   # py -3.12 on Windows
+v2/integrations/wayfinder/.venv/Scripts/pip install wayfinder-paths==0.11.0   # bin/pip elsewhere
+
+export KEEPERHUB_API_KEY=kh_...          # organization key; a wfb_ key is a different system
+export MIRSAD_ACTOR=0x...                # the KeeperHub organization wallet
+
+pnpm mirsad plan                          # what Wayfinder proposes, and why
+pnpm mirsad check                         # decide; never broadcasts
+pnpm mirsad check --beneficiary 0xdead…   # a compromised planner
+pnpm mirsad execute --amount 1            # decide, simulate, send, prove
+pnpm mirsad journal                       # what previous runs left behind
+pnpm mirsad reconcile                     # ask KeeperHub about anything unfinished
 ```
 
-Then, against the live Sepolia deployment:
+`check` and `execute` run identical code up to the point of sending. The thing you inspected is the thing that executes.
 
-```bash
-# Queue an attack as a compromised proposer would.
-# scenarios: drain | delegatecall | owner-swap | guard-removal
-cd packages/contracts
-SCENARIO=owner-swap pnpm hardhat run scripts/queue-attack.ts --network sepolia
-
-# Watch MIRSAD find it, judge it, and veto it onchain.
-pnpm run watch
-
-# Read the trail and verify the hash chain.
-pnpm run audit
-```
-
-Or run the whole thing end to end in one command:
-
-```bash
-cd packages/contracts
-pnpm hardhat run scripts/demo-veto.ts --network sepolia
-```
-
-`MIRSAD_ARMED` defaults to `false`. Arming the onchain response is an explicit act.
+Tests: `pnpm v2:test` — 105 across the policy engine, the executor and the planner boundary, none of which touch the network.
 
 ---
 
-## Built on KeeperHub
+## KeeperHub surfaces used
 
-MIRSAD does not manage keys, nonces, gas, or retries. That is the point of the hackathon and the point of the product.
+| Surface | Where |
+|---|---|
+| MCP server, JSON-RPC over Streamable HTTP | [`transport.ts`](v2/packages/keeperhub/src/transport.ts) — pins `KeeperHub-Version: 1`, honours `Retry-After`, warns on `Sunset` |
+| `execute_contract_call` with `simulate: true`, then `idempotency_key` | [`execute.ts`](v2/packages/keeperhub/src/execute.ts) — the documented safe-write sequence, with the hash check in front of it |
+| `get_direct_execution_status` | polling with bounded backoff; `reconcile` |
+| `execute_protocol_action` → `aave-v3/get-user-reserve-data` | one of the two independent postcondition readers |
+| Gas sponsorship | every transaction above |
+| Marketplace | `mirsad-safe-guard`, listed at $0.05/call in v1 and still resolvable |
 
-**MCP server** — every onchain action goes through `https://app.keeperhub.com/mcp` over JSON-RPC. **Direct execution** — `execute_contract_call` follows the documented safe-write sequence exactly: simulate, assert `success && !wouldRevert`, resend with an idempotency key, poll with bounded backoff. Skipping the preflight is how agents broadcast transactions that were always going to revert, so the client exposes it as one method that cannot be half-followed. **Workflow builder** — the queue poller is a KeeperHub workflow built programmatically through MCP. **Safe plugin** — `safe/get-pending-transactions` is the trigger. **Gas sponsorship** — every MIRSAD transaction so far has been sponsored; the wallet's balance is unchanged since it was funded. **Private routing** — Sepolia has `usePrivateMempoolRpc` enabled.
-
-### And MIRSAD supplies KeeperHub too
-
-The audit is published as a paid marketplace listing, callable by any organization's agent:
-
-```
-slug   mirsad-safe-guard        $0.05 USDC per call
-mcp    https://app.keeperhub.com/mcp/w/mirsad-safe-guard
-call   https://app.keeperhub.com/api/mcp/workflows/mirsad-safe-guard/call
-```
-
-```json
-{ "safe": "0xe10b…20eC", "assessed": 3, "vetoed": 2, "warned": 1,
-  "transactions": [
-    { "verdict": "VETO", "findings": [{ "code": "guard-change",
-        "summary": "Changes or removes the transaction guard. An attacker does this first." }] }
-  ]}
-```
-
-The detectors run inside KeeperHub's sandboxed Code action, not on our infrastructure — a caller depends on KeeperHub's uptime rather than ours, which is the correct architecture for something sold as a service. Settlement is per call in USDC over x402 or MPP.
+Why `execute_contract_call` and not the `aave-v3/supply` protocol action: the protocol action has no dry-run — its own description says *"writes sign and broadcast"* — so nothing routed through it can be preflighted, and MIRSAD's entire claim is that the preflighted bytes are the sent bytes. The raw ABI route is the one that can make that promise.
 
 ---
 
-## Repository
+## Things we found on the way
 
-```
-packages/core        watch loop, detectors, classifier, KeeperHub client, audit trail
-packages/contracts   MirsadVerdictRegistry, MirsadGuard, deploy + attack + demo scripts
-apps/agent           doctor | watch | audit | publish
-docs/FRICTION.md     a teardown of zero-to-first-transaction on KeeperHub
-```
+Logged as they happened, in the style of [v1's teardown](docs/FRICTION.md).
 
-**72 tests** — 71 run offline; the one that calls the live classifier API is opt-in, so a clone with no keys still gets a green suite. The contract suite runs against real Safe v1.4.1 contracts rather than mocks — the central claim is only worth something if it holds against the implementation a treasury actually runs.
-
----
-
-## What this is not
-
-It does not stop a malicious transaction that is queued and executed faster than one polling interval. It does not protect a 1-of-1 Safe from its own owner, who can remove the guard — though MIRSAD will veto that attempt, and did. It does not read Safe's off-chain proposal metadata yet, so the classifier is strongest when a stated intent is supplied alongside the transaction. Token-denominated drains are detected structurally, by allowance and recipient, not by USD value.
-
-The address book is currently configuration. In production it should be onchain and itself guarded, or an attacker who can edit your config has already won.
+- **`aave-v3/supply` takes base units; `web3/approve-token` takes human units.** Two adjacent actions in the same flow, opposite conventions, and the MCP schema says `string` for both. The platform's own `protocols/aave-v3.ts` labels the field `Amount (wei)`; the Phase 0 notes in this repository guessed the other way and would have supplied 0.000001 USDC.
+- **Base Sepolia's Aave "USDC" is not Circle's USDC.** The market uses Aave's test token `0xba50Cd2A…`, not the `0x036CbD53…` bridged one. Substituting the familiar address reverts in a way that reads as a permissions problem.
+- **Wayfinder's Aave adapter is mainnet-only.** Chain 84532 is rejected as unsupported, so planning happens on Base.
+- **Simulation gas is not sponsored gas.** 88,834 estimated, 149,811 used, on two chains now.
+- **The CLI's billing parser rejects the live response.** `overageCharges` is an array; the CLI expects a number.
 
 ---
 
-## docs/FRICTION.md
+## Prior work
 
-Seventeen items logged while building this, in real time, each with a proposed fix. The most consequential: the documented parameters for `execute_contract_call` — the primary write path — do not match the schema the server accepts, and the same drift affects four more tools. One fix retires most of them: generate the docs page from `tools/list`, where the field descriptions are already better than the published ones.
+MIRSAD v1 (August 2026) was a Safe multisig watchtower that wrote binding onchain vetoes through KeeperHub: two contracts on Sepolia, four autonomous vetoes, a 2-of-3 Safe where three signatures were not enough to move the treasury. The contracts are still deployed and verified, and the transactions still check out. It is documented in full in [docs/LEGACY.md](docs/LEGACY.md), and its code is under [`packages/`](packages/) and [`apps/`](apps/).
+
+v2 reuses its principles — rules gate, hash-linked audit, honest limits — and none of its code. The problem moved from "should the Safe execute what its owners signed" to "should KeeperHub execute what the agent planned", and that is a different shape.
 
 ---
 
-*مِرْصاد — the watchpost; the place from which one lies in wait.*
-
-MIT
+MIT.
