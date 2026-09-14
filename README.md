@@ -36,7 +36,21 @@ One hex digit changed in the beneficiary. The planner's rationale — 3.79% supp
 
 ## Executed through KeeperHub
 
-All on Base Sepolia, all gas-sponsored, all through `execute_contract_call` with a preflight and an idempotency key. The wallet's ETH balance was 0 before and 0 after every one of them.
+**Base mainnet, 14 September 2026.** Wayfinder read the live market (3.631% supply APY, 23.4M USDC liquidity, block 51,313,5xx), proposed 1 USDC, MIRSAD allowed it, KeeperHub executed exactly the artifact.
+
+| | Transaction | Gas | Paid by |
+|---|---|---|---|
+| `approve(pool, 1000000)` | [`0xce7e567c…`](https://basescan.org/tx/0xce7e567c04c1634b2a047074436e9fac4829394acf7c80f8f75bec5a6739d6d9) | 117,316 | KeeperHub relayer `0x12fda741…` |
+| `supply(USDC, 1000000, actor, 0)` | [`0x5a1eb2d9…`](https://basescan.org/tx/0x5a1eb2d97d576a6c4b65674a0c94d0af01a17ca9abd00ac1449a4cbc0fcb0345) | 235,114 | KeeperHub relayer `0x12fda741…` |
+
+```
+intentHash    0xb83384bcb84c3a4b3609dee35f768d3e806d1da7dfbd4327898cb1cca3a019a0
+artifactHash  0x78522351d4493123c7b1a25163e643cc12ae6780601a7d8f731ba400e1d9d298
+postcondition OK   aUSDC 0 -> 999,999   keeperhub and rpc agree
+wallet ETH    0 before, 0 after
+```
+
+Everything below it is Base Sepolia — the same code, the same wallet, free test USDC — where the pipeline was proven and the crash tests were run before a cent of real money was touched. All gas-sponsored, all through `execute_contract_call` with a preflight and an idempotency key.
 
 | Run | approve | supply | Postcondition |
 |---|---|---|---|
