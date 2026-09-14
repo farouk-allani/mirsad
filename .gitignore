@@ -51,3 +51,6 @@ out/
 v2/integrations/wayfinder/.venv/
 v2/.mirsad/
 v2/packages/*/dist/
+
+# working notes, runbooks, upstream drafts, ops scripts -- never in the tree
+internal/
