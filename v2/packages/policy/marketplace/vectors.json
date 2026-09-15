@@ -1,0 +1,1611 @@
+[
+  {
+    "name": "allow",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "ALLOW",
+      "intentHash": "0x05c18b3c107ec7392700ecd9b099a3438584edd4b704457e68bff4f6f143bdc8",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "artifact": {
+        "schemaVersion": "mirsad.artifact.v1",
+        "intentHash": "0x05c18b3c107ec7392700ecd9b099a3438584edd4b704457e68bff4f6f143bdc8",
+        "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+        "chainId": 8453,
+        "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+        "calls": [
+          {
+            "leg": "approve",
+            "contract": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            "functionName": "approve",
+            "args": [
+              "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+              "1000000"
+            ]
+          },
+          {
+            "leg": "action",
+            "contract": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+            "functionName": "supply",
+            "args": [
+              "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+              "1000000",
+              "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+              0
+            ]
+          }
+        ],
+        "observations": {
+          "blockNumber": "51100697",
+          "observedAt": "2026-09-09T11:59:00.000Z"
+        },
+        "issuedAt": "2026-09-09T12:00:00.000Z",
+        "expiresAt": "2026-09-09T12:02:00.000Z"
+      },
+      "artifactHash": "0xce38d7e6a1ac91bd03b2ab3aa4e79e79aa8f9800631854d95b296452479266f4"
+    }
+  },
+  {
+    "name": "allow with checksummed addresses",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+      "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1F535539d5495F0e58ECB8F16006605acFfd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "ALLOW",
+      "intentHash": "0x05c18b3c107ec7392700ecd9b099a3438584edd4b704457e68bff4f6f143bdc8",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "artifact": {
+        "schemaVersion": "mirsad.artifact.v1",
+        "intentHash": "0x05c18b3c107ec7392700ecd9b099a3438584edd4b704457e68bff4f6f143bdc8",
+        "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+        "chainId": 8453,
+        "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+        "calls": [
+          {
+            "leg": "approve",
+            "contract": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            "functionName": "approve",
+            "args": [
+              "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+              "1000000"
+            ]
+          },
+          {
+            "leg": "action",
+            "contract": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+            "functionName": "supply",
+            "args": [
+              "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+              "1000000",
+              "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+              0
+            ]
+          }
+        ],
+        "observations": {
+          "blockNumber": "51100697",
+          "observedAt": "2026-09-09T11:59:00.000Z"
+        },
+        "issuedAt": "2026-09-09T12:00:00.000Z",
+        "expiresAt": "2026-09-09T12:02:00.000Z"
+      },
+      "artifactHash": "0xce38d7e6a1ac91bd03b2ab3aa4e79e79aa8f9800631854d95b296452479266f4"
+    }
+  },
+  {
+    "name": "allow, intent delivered as a JSON string",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": "{\"schemaVersion\":\"mirsad.intent.v1\",\"source\":{\"system\":\"wayfinder\",\"runId\":\"run-1\",\"path\":\"mirsad-guarded-aave@0.11.0\"},\"chainId\":8453,\"protocol\":\"aave-v3\",\"action\":\"supply\",\"target\":\"0xa238dd80c259a72e81d7e4664a9801593f98d1c5\",\"token\":\"0x833589fcd6edb6e08f4c7c32d4f71b54bda02913\",\"amountBaseUnits\":\"1000000\",\"beneficiary\":\"0x1f535539d5495f0e58ecb8f16006605acffd33f4\",\"observations\":{\"blockNumber\":\"51100697\",\"observedAt\":\"2026-09-09T11:59:00.000Z\"}}",
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "ALLOW",
+      "intentHash": "0x05c18b3c107ec7392700ecd9b099a3438584edd4b704457e68bff4f6f143bdc8",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "artifact": {
+        "schemaVersion": "mirsad.artifact.v1",
+        "intentHash": "0x05c18b3c107ec7392700ecd9b099a3438584edd4b704457e68bff4f6f143bdc8",
+        "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+        "chainId": 8453,
+        "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+        "calls": [
+          {
+            "leg": "approve",
+            "contract": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            "functionName": "approve",
+            "args": [
+              "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+              "1000000"
+            ]
+          },
+          {
+            "leg": "action",
+            "contract": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+            "functionName": "supply",
+            "args": [
+              "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+              "1000000",
+              "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+              0
+            ]
+          }
+        ],
+        "observations": {
+          "blockNumber": "51100697",
+          "observedAt": "2026-09-09T11:59:00.000Z"
+        },
+        "issuedAt": "2026-09-09T12:00:00.000Z",
+        "expiresAt": "2026-09-09T12:02:00.000Z"
+      },
+      "artifactHash": "0xce38d7e6a1ac91bd03b2ab3aa4e79e79aa8f9800631854d95b296452479266f4"
+    }
+  },
+  {
+    "name": "block beneficiary",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0xdead00000000000000000000000000000000beef",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x5b6fb2bf6121a2a3f30188becc9f580ff3e0ff4fce8a765921b55605ec2ae2f7",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "beneficiary",
+          "message": "position would accrue to 0xdead00000000000000000000000000000000beef; policy names 0x1f535539d5495f0e58ecb8f16006605acffd33f4"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block amount over cap",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "100000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x9daf615d7a56af38df39b20f51a3dcf487626d12dc73ab06a0007dcebbdfa41b",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "amount",
+          "message": "amount 100000000 exceeds the cap of 5000000 base units"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block unlimited amount",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0xf60f11c94f118555e7ddbbc9947dfc12881ef74ba96bec9d895ef851c7985afa",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "amount",
+          "message": "amount 115792089237316195423570985008687907853269984665640564039457584007913129639935 exceeds the cap of 5000000 base units"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block zero amount",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "0",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x11e6a8c1fbca1f54fb77b32d2e17e7d298d561c51e6139a4a1c4ab0ee88a474b",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "amount",
+          "message": "amount is zero"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block other chain",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 84532,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x4b44d7622631ec7405f4b3e53688dde4112fdd75d4323c0b0129f5c72f93190b",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "chain",
+          "message": "intent targets chain 84532; policy permits 8453 only"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block lookalike pool",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xdead00000000000000000000000000000000beef",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0xba7ca4320f76d1d17a02a5b785e132d39e4ff377eb29253d7767a68db50fc17e",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "allowlist",
+          "message": "no policy entry permits aave-v3/supply on 0xdead00000000000000000000000000000000beef with token 0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block other token",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0xdead00000000000000000000000000000000beef",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0xd4a5ecf8adc81abc2cfe3ab7ad8a64e3a08f6831e9b621fbabaafb59b135dc62",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "allowlist",
+          "message": "no policy entry permits aave-v3/supply on 0xa238dd80c259a72e81d7e4664a9801593f98d1c5 with token 0xdead00000000000000000000000000000000beef"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block borrow",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "borrow",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0xc9686d18c8d7cfd8b8ca002b0e5938499486cafd5c4349d16b54599228c3faac",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "allowlist",
+          "message": "no policy entry permits aave-v3/borrow on 0xa238dd80c259a72e81d7e4664a9801593f98d1c5 with token 0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        },
+        {
+          "rule": "unsupported-action",
+          "message": "no call builder for aave-v3/borrow"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block other protocol",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "morpho",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x98058001200dc16284be7d88acaefbbb713716cef6440f1168879429e6d1101b",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "allowlist",
+          "message": "no policy entry permits morpho/supply on 0xa238dd80c259a72e81d7e4664a9801593f98d1c5 with token 0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        },
+        {
+          "rule": "unsupported-action",
+          "message": "no call builder for morpho/supply"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block stale observation",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "1",
+        "observedAt": "2026-09-09T11:00:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x9facffd8fd0683b71b9a8d7bd1f51a373076945c66a656fb4aa2ebb94ba32201",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "freshness",
+          "message": "observation is 3600s old; policy allows 300s"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block future observation",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "1",
+        "observedAt": "2026-09-09T13:00:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0xb8452cb1bfae00a789aea8501b7d0024c931aa620007f88c25a67d0f3e687b06",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "freshness",
+          "message": "observation is dated 3600s in the future"
+        }
+      ]
+    }
+  },
+  {
+    "name": "block three violations at once",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 1,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "100000000",
+      "beneficiary": "0xdead00000000000000000000000000000000beef",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x1d6ddfa585d460b1f9538d6d076b1c3b1830ffc368083335365fe654c77f3c04",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "chain",
+          "message": "intent targets chain 1; policy permits 8453 only"
+        },
+        {
+          "rule": "amount",
+          "message": "amount 100000000 exceeds the cap of 5000000 base units"
+        },
+        {
+          "rule": "beneficiary",
+          "message": "position would accrue to 0xdead00000000000000000000000000000000beef; policy names 0x1f535539d5495f0e58ecb8f16006605acffd33f4"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema unknown field",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      },
+      "referralCode": 7
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0xd21b32760d2e0c07a0fb989c440f208f4ed2b44f3873fdb6360af8af4eff16af",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "<root>: Unrecognized key(s) in object: 'referralCode'"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema missing field",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x93f4f6f615c513164b6bcef214719868ebacf2f081f9dbeb2dad47efa29475a0",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "beneficiary: Required"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema leading zero",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "01",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x85ed207bc660eb7faa3206ed37dae7003311f7e2350155897dc4c279f8f4806c",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "amountBaseUnits: not a canonical base-unit integer string"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema fractional amount",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1.5",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x161c2bcde6f6897d4a5410c9dd2e0a3b83fad0cf302db85a60bacdf56ac2a0cb",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "amountBaseUnits: not a canonical base-unit integer string"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema negative amount",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "-1",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x4070e4e73c3f37fa77ad0713344ff037e4f04ea4b7b228a7a568c32d0304c4da",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "amountBaseUnits: not a canonical base-unit integer string"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema amount as number",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": 1000000,
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x75745b3e816066bd7be841c70197a5b23850ac0194d991c55c56e990bff4f073",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "amountBaseUnits: Expected string, received number"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema truncated address",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0xdead",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x02804c83322482567ae5b9964fb12519a13bcd2174e42f10cd2825c1722e5ea4",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "beneficiary: not a 20-byte hex address"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema future version",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v2",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0xa96aca12536a98da122dfedbb4d6478ec86188c138db4fe6ad137e4fe052892c",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "schemaVersion: Invalid literal value, expected \"mirsad.intent.v1\""
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema chainId not integer",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453.5,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "chainId: Expected integer, received float"
+        }
+      ]
+    }
+  },
+  {
+    "name": "schema not an object",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": "supply everything",
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x5cb4eb45bd8a1f78bf1b999b10d9b42d96193d790d6df15a383417d94e0bef99",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "schema",
+          "message": "<root>: Expected object, received string"
+        }
+      ]
+    }
+  },
+  {
+    "name": "unsupported action with a permissive policy",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "flashloan",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "flashloan",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0x9f4b1261638b5b696a41a59f16f6e0aa0f39706b9e382e291e7cf9bf755d5ca9",
+      "policyHash": "0x47b49d9d1b9d36a4883ef3daa171d30c17a388c3ffdb686ff645cc6d679a6fd8",
+      "reasons": [
+        {
+          "rule": "unsupported-action",
+          "message": "no call builder for aave-v3/flashloan"
+        }
+      ]
+    }
+  },
+  {
+    "name": "allow at the edge of freshness",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "1000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "1",
+        "observedAt": "2026-09-09T11:55:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "ALLOW",
+      "intentHash": "0x21246ebf0d3d7bfc45ee502c6ade758b3dfe45e4e416569e65fbc42b6667a4e5",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "artifact": {
+        "schemaVersion": "mirsad.artifact.v1",
+        "intentHash": "0x21246ebf0d3d7bfc45ee502c6ade758b3dfe45e4e416569e65fbc42b6667a4e5",
+        "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+        "chainId": 8453,
+        "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+        "calls": [
+          {
+            "leg": "approve",
+            "contract": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            "functionName": "approve",
+            "args": [
+              "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+              "1000000"
+            ]
+          },
+          {
+            "leg": "action",
+            "contract": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+            "functionName": "supply",
+            "args": [
+              "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+              "1000000",
+              "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+              0
+            ]
+          }
+        ],
+        "observations": {
+          "blockNumber": "1",
+          "observedAt": "2026-09-09T11:55:00.000Z"
+        },
+        "issuedAt": "2026-09-09T12:00:00.000Z",
+        "expiresAt": "2026-09-09T12:02:00.000Z"
+      },
+      "artifactHash": "0x3fc3cc6e0650bea04bcfd6a401b75e3c4368596b1c328ef6e682bf88cbaebb91"
+    }
+  },
+  {
+    "name": "allow at the cap exactly",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "5000000",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "ALLOW",
+      "intentHash": "0x5230f60354a60215fb3c040744b6c61231b1cea446f93e0fe86552c1b106a4db",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "artifact": {
+        "schemaVersion": "mirsad.artifact.v1",
+        "intentHash": "0x5230f60354a60215fb3c040744b6c61231b1cea446f93e0fe86552c1b106a4db",
+        "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+        "chainId": 8453,
+        "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+        "calls": [
+          {
+            "leg": "approve",
+            "contract": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            "functionName": "approve",
+            "args": [
+              "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+              "5000000"
+            ]
+          },
+          {
+            "leg": "action",
+            "contract": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+            "functionName": "supply",
+            "args": [
+              "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+              "5000000",
+              "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+              0
+            ]
+          }
+        ],
+        "observations": {
+          "blockNumber": "51100697",
+          "observedAt": "2026-09-09T11:59:00.000Z"
+        },
+        "issuedAt": "2026-09-09T12:00:00.000Z",
+        "expiresAt": "2026-09-09T12:02:00.000Z"
+      },
+      "artifactHash": "0xa102de0a4564835c4cc6cd63c6c5864b16efc4d8edeb9794f688e45fc7c3b59f"
+    }
+  },
+  {
+    "name": "block one unit over the cap",
+    "now": "2026-09-09T12:00:00.000Z",
+    "intent": {
+      "schemaVersion": "mirsad.intent.v1",
+      "source": {
+        "system": "wayfinder",
+        "runId": "run-1",
+        "path": "mirsad-guarded-aave@0.11.0"
+      },
+      "chainId": 8453,
+      "protocol": "aave-v3",
+      "action": "supply",
+      "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+      "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amountBaseUnits": "5000001",
+      "beneficiary": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "observations": {
+        "blockNumber": "51100697",
+        "observedAt": "2026-09-09T11:59:00.000Z"
+      }
+    },
+    "policy": {
+      "schemaVersion": "mirsad.policy.v1",
+      "name": "aave-v3-supply-usdc-8453",
+      "chainId": 8453,
+      "actor": "0x1f535539d5495f0e58ecb8f16006605acffd33f4",
+      "allow": [
+        {
+          "protocol": "aave-v3",
+          "action": "supply",
+          "target": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+          "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        }
+      ],
+      "maxAmountBaseUnits": "5000000",
+      "maxObservationAgeSeconds": 300,
+      "artifactTtlSeconds": 120
+    },
+    "expected": {
+      "verdict": "BLOCK",
+      "intentHash": "0xb8805a11861cfe73a1a44f388ccec5adb38adf02e053d202a0cd9991a5b6f145",
+      "policyHash": "0xf61b076f922677185ba54ac1b5aa14ac7d1238f70789a534ca4a47de605c6ce7",
+      "reasons": [
+        {
+          "rule": "amount",
+          "message": "amount 5000001 exceeds the cap of 5000000 base units"
+        }
+      ]
+    }
+  }
+]

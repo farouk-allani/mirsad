@@ -6,6 +6,7 @@
  *   execute    the same decision, then act on it. Broadcasts.
  *   journal    what previous runs left behind, finished or not
  *   reconcile  ask KeeperHub about anything unfinished. Never broadcasts.
+ *   publish    list the policy engine on the KeeperHub marketplace
  *
  * `check` and `execute` run identical code up to the point of sending, so the
  * thing an operator inspected is the thing that later executes rather than a
@@ -31,6 +32,7 @@ import type { PositionReader } from "@mirsad/keeperhub";
 import { aaveBasePolicy, aaveMarket, isAaveChainId } from "@mirsad/policy";
 
 import { plan } from "./plan.js";
+import { publish } from "./publish.js";
 import { run } from "./run.js";
 
 interface Config {
@@ -142,6 +144,12 @@ async function main(): Promise<void> {
     const results = await reconcile(journal, transport);
     console.log(JSON.stringify(results, null, 2));
     if (results.some((r) => r.status !== "settled")) process.exitCode = 5;
+    return;
+  }
+  if (command === "publish") {
+    const transport = new McpTransport({ apiKey: config.apiKey });
+    await transport.connect();
+    await publish(transport);
     return;
   }
 
