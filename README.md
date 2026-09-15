@@ -20,7 +20,7 @@
   <a href="https://youtu.be/PycnVV03wWM">Three-minute demo</a> ·
   <a href="https://basescan.org/tx/0x5a1eb2d97d576a6c4b65674a0c94d0af01a17ca9abd00ac1449a4cbc0fcb0345">Mainnet transaction</a> ·
   <a href="https://github.com/KeeperHub/keeperhub/pull/2475">Upstream PR</a> ·
-  108 tests
+  147 tests
 </p>
 
 ---
@@ -235,11 +235,11 @@ pnpm mirsad reconcile                     # ask KeeperHub about anything unfinis
 
 `check` and `execute` run identical code up to the point of sending. The thing you inspected is the thing that executes.
 
-Tests: `pnpm v2:test` — 108 across the policy engine, the executor and the planner boundary, none of which touch the network.
+Tests: `pnpm v2:test` — 147 across the policy engine, the marketplace engine's equivalence, the executor and the planner boundary, none of which touch the network.
 
 | Package | Holds |
 |---|---|
-| [`v2/packages/policy`](v2/packages/policy) | canonical encoding, the three schemas, the five rules, the Aave pack |
+| [`v2/packages/policy`](v2/packages/policy) | canonical encoding, the three schemas, the five rules, the Aave pack, the marketplace engine and its vectors |
 | [`v2/packages/keeperhub`](v2/packages/keeperhub) | MCP transport, artifact-bound executor, journal, reconcile, postcondition readers |
 | [`v2/packages/agent`](v2/packages/agent) | planner boundary with the scrubbed environment, the pipeline, the CLI |
 | [`v2/integrations/wayfinder`](v2/integrations/wayfinder) | the Wayfinder Path |
@@ -255,9 +255,17 @@ Tests: `pnpm v2:test` — 108 across the policy engine, the executor and the pla
 | `get_direct_execution_status` | polling with bounded backoff; `reconcile` |
 | `execute_protocol_action` → `aave-v3/get-user-reserve-data` | one of the two independent postcondition readers |
 | Gas sponsorship | every transaction above, on three chains |
-| Marketplace, x402 | `mirsad-safe-guard`, listed at $0.05/call in v1; still answers a `402` with a Base USDC challenge |
+| Marketplace, x402 | Prepared, not live: the engine is packaged for the Code action with an equivalence test, and `pnpm mirsad publish` lists it — but the Code action is Pro-gated at save, and the v1 listing was withdrawn for the same reason. See below. |
 
 Why `execute_contract_call` and not the `aave-v3/supply` protocol action: the protocol action has no dry-run — its own description says *"writes sign and broadcast"* — so nothing routed through it can be preflighted, and MIRSAD's entire claim is that the preflighted bytes are the sent bytes. The raw ABI route is the one that can make that promise.
+
+### The marketplace listing that is ready but not live
+
+The decision is the sellable part of MIRSAD — read-only, no custody, no keys — and KeeperHub's marketplace is the natural place to sell it: a caller sends a proposal and a policy, pays $0.05 in USDC over x402, and gets the verdict, the reasons and the hashes. [`marketplace/engine.js`](v2/packages/policy/marketplace/engine.js) is that listing's body: a second implementation of the engine for KeeperHub's import-free Code sandbox, with its own keccak-256.
+
+What stops a second implementation from drifting is [`vectors.json`](v2/packages/policy/marketplace/vectors.json): 29 cases decided by the TypeScript engine, which the sandbox copy must match on verdict, both hashes, the artifact and every rule id. Five further probes assert the keccak matches viem's byte for byte. `pnpm mirsad publish` creates, prices and lists it by slug.
+
+It is not live because the Code action requires the Pro plan at workflow save — `402 upgrade_required`, `featureId: action.code` — and this project runs on the free tier by choice. The v1 listing, created while a Pro period was active, still answered the x402 challenge after that period lapsed but could no longer execute; it was withdrawn rather than left charging callers for runs that fail. Anyone on Pro can list the engine with one command.
 
 ---
 
@@ -269,6 +277,7 @@ Logged as they happened, in the style of [v1's teardown](docs/FRICTION.md).
 - **Base Sepolia's Aave "USDC" is not Circle's USDC.** The market uses Aave's test token `0xba50Cd2A…`, not the `0x036CbD53…` bridged one. Substituting the familiar address reverts in a way that reads as a permissions problem.
 - **Wayfinder's Aave adapter is mainnet-only.** Chain 84532 is rejected as unsupported, so planning happens on Base.
 - **Simulation gas is not sponsored gas.** 88,834 estimated, 149,811 used, on two chains now.
+- **The Code action is Pro-gated at save, and a lapsed plan keeps a listing visible but not runnable.** Creating or executing a workflow with `code/run-code` on the free tier returns `402 upgrade_required`. The gate was invisible at discovery until [PR #2362](https://github.com/KeeperHub/keeperhub/pull/2362) made `list_action_schemas` disclose `requiredPlan`; a spike that checked discovery rather than save concluded the action was free. A workflow listed under Pro stays listed after the plan lapses and still issues x402 challenges, so a caller can pay for an execution that then fails on the plan gate.
 - **The CLI's billing parser rejects the live response.** `overageCharges` is an array; the CLI expects a number.
 
 ---
