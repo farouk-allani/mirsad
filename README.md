@@ -135,7 +135,7 @@ sequenceDiagram
         end
     end
     E->>K: aave-v3/get-user-reserve-data
-    E->>E: aToken balanceOf over RPC; compare the delta from both
+    E->>E: aToken balanceOf over RPC, then compare the delta from both
 ```
 
 ### Two properties carry the design
