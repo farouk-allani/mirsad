@@ -1,12 +1,27 @@
-# MIRSAD
+<p align="center">
+  <img src="docs/brand/mirsad-logo.png" width="340" alt="MIRSAD">
+</p>
 
-**A policy gate between an agent that plans and the infrastructure that executes. A Wayfinder Path proposes a DeFi action; MIRSAD binds it to one exact, hashed, expiring artifact; [KeeperHub](https://keeperhub.com) executes that artifact and nothing else.**
+<p align="center">
+  <b>A policy gate between an agent that plans and the infrastructure that executes.</b><br>
+  A Wayfinder Path proposes a DeFi action. MIRSAD binds it to one exact, hashed, expiring artifact.<br>
+  <a href="https://keeperhub.com">KeeperHub</a> executes that artifact and nothing else.
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/PycnVV03wWM">Three-minute demo</a> ·
+  <a href="https://basescan.org/tx/0x5a1eb2d97d576a6c4b65674a0c94d0af01a17ca9abd00ac1449a4cbc0fcb0345">Mainnet transaction</a> ·
+  <a href="https://github.com/KeeperHub/keeperhub/pull/2475">Upstream PR</a> ·
+  108 tests
+</p>
+
+---
 
 KeeperHub's pitch for the agent economy is that an agent composes a workflow, *you review it*, you dry-run it, and then that exact workflow executes — nothing is inferred at execution time. MIRSAD is what *"you review it"* becomes when the reviewer is a policy signed once in advance rather than a person reading calldata at two in the morning. The human signs a small, readable policy. Not a blank cheque to an agent.
 
 > `مِرْصاد` — the watchpost; the place from which one lies in wait.
 
-**Three-minute demo:** https://youtu.be/PycnVV03wWM — the four proposals, the mainnet execution, and a process killed mid-broadcast and resumed without a duplicate.
+**Contents** — [The claim, demonstrated](#the-claim-demonstrated) · [Executed through KeeperHub](#executed-through-keeperhub) · [How it works](#how-it-works) · [When it is not the happy path](#when-it-is-not-the-happy-path) · [What this does not protect](#what-this-does-not-protect) · [Run it](#run-it) · [KeeperHub surfaces used](#keeperhub-surfaces-used) · [Things we found on the way](#things-we-found-on-the-way) · [Prior work](#prior-work)
 
 ---
 
@@ -38,9 +53,11 @@ One hex digit changed in the beneficiary. The planner's rationale — 3.79% supp
 
 ## Executed through KeeperHub
 
-**Base mainnet, 14 September 2026.** Wayfinder read the live market (3.631% supply APY, 23.4M USDC liquidity, block 51,313,5xx), proposed 1 USDC, MIRSAD allowed it, KeeperHub executed exactly the artifact.
+### Base mainnet, 14 September 2026
 
-| | Transaction | Gas | Paid by |
+Wayfinder read the live market (3.631% supply APY, 23.4M USDC liquidity), proposed 1 USDC, MIRSAD allowed it, KeeperHub executed exactly the artifact.
+
+| Leg | Transaction | Gas | Paid by |
 |---|---|---|---|
 | `approve(pool, 1000000)` | [`0xce7e567c…`](https://basescan.org/tx/0xce7e567c04c1634b2a047074436e9fac4829394acf7c80f8f75bec5a6739d6d9) | 117,316 | KeeperHub relayer `0x12fda741…` |
 | `supply(USDC, 1000000, actor, 0)` | [`0x5a1eb2d9…`](https://basescan.org/tx/0x5a1eb2d97d576a6c4b65674a0c94d0af01a17ca9abd00ac1449a4cbc0fcb0345) | 235,114 | KeeperHub relayer `0x12fda741…` |
@@ -52,7 +69,9 @@ postcondition OK   aUSDC 0 -> 999,999   keeperhub and rpc agree
 wallet ETH    0 before, 0 after
 ```
 
-Everything below it is Base Sepolia — the same code, the same wallet, free test USDC — where the pipeline was proven and the crash tests were run before a cent of real money was touched. All gas-sponsored, all through `execute_contract_call` with a preflight and an idempotency key.
+### Base Sepolia, where it was proven first
+
+The same code, the same wallet, free test USDC — where the pipeline and the crash tests ran before a cent of real money was touched. All gas-sponsored, all through `execute_contract_call` with a preflight and an idempotency key. The wallet's ETH balance was 0 before and 0 after every one of them.
 
 | Run | approve | supply | Postcondition |
 |---|---|---|---|
@@ -62,7 +81,7 @@ Everything below it is Base Sepolia — the same code, the same wallet, free tes
 | **Killed after `prepared`, before any send; resumed** | [`0x9178de03…`](https://sepolia.basescan.org/tx/0x9178de03a6b653e1d40fcf3acdac267d1928f742ff049c1385d1b491500550e8) | [`0xbb060101…`](https://sepolia.basescan.org/tx/0xbb060101addb3295073daa737c954878227a798930f7652f380004890fc88736) | same key on resume, no second preflight |
 | **Killed after the approve was broadcast, before its receipt; reconciled; resumed** | [`0x9f4b27df…`](https://sepolia.basescan.org/tx/0x9f4b27dfab28cca5769372d2eca071d99042bcb9f021e2852ac78f5ea1ce057e) | [`0x4627dfa1…`](https://sepolia.basescan.org/tx/0x4627dfa12cc972ba6d9201d8ffbfad1665729a550e0d4a2ca409b229267353fe) | approve reused from the journal; exactly one on chain |
 
-The first runs found three bugs, which is what first runs are for. The report crashed on printing a `bigint` — after the sends, so the journal was the only record of what happened, and it was complete. And Aave's scaled-balance arithmetic rounds a 1 USDC supply down to 999,999 on the way back; the postcondition had said "may never fall short" and would have failed a correct execution. It now tolerates two units of rounding and still fails a real shortfall. The third was the key derivation above, found by the first crash test.
+The first runs found three bugs, which is what first runs are for. The report crashed on printing a `bigint` — after the sends, so the journal was the only record of what happened, and it was complete. Aave's scaled-balance arithmetic rounds a 1 USDC supply down to 999,999 on the way back; the postcondition had said "may never fall short" and would have failed a correct execution. And the idempotency key was derived from the artifact, which carries `issuedAt`, so a crash-and-re-decide would have double-sent — found by the first crash test. All three are fixed, tested, and described below.
 
 The faucet mint is a meta-transaction: the relayer `0xdcf4bac4…` paid, the forwarder `0x5af5194b…` (the same forwarder as on Ethereum Sepolia) delivered. Preflight estimated 88,834 gas; the forwarder path used 149,811. Do not budget gas for a sponsored write off the simulation.
 
@@ -72,7 +91,18 @@ Every transaction this repository has ever executed through KeeperHub — includ
 
 ## How it works
 
-Three documents, one of them trusted.
+```mermaid
+flowchart LR
+    W["Wayfinder Path<br/>reads Aave on Base<br/>holds no secrets"] -->|proposal| P["Policy engine<br/>pure, no I/O"]
+    P -->|BLOCK| B["Reasons, one per rule<br/>zero calls to KeeperHub"]
+    P -->|"ALLOW<br/>hashed artifact, 120s expiry"| X["Executor<br/>asserts the hash, then sends"]
+    X -->|"simulate, then send<br/>under a derived key"| K["KeeperHub<br/>signs, sponsors gas, broadcasts"]
+    K --> A["Aave V3 on Base"]
+    K -.->|"get-user-reserve-data"| R["Postcondition<br/>two independent readers"]
+    A -.->|"aToken balanceOf over RPC"| R
+```
+
+### Three documents, one of them trusted
 
 **`ExecutionIntent`** is what the planner proposes. Chain, protocol, action, target contract, token, amount in base units, beneficiary, and the block it observed. It is untrusted. Every field may be wrong, stale or hostile, and the schema is strict: an unrecognised field is a parse failure, and a parse failure is a BLOCK.
 
@@ -80,19 +110,41 @@ Three documents, one of them trusted.
 
 **`ApprovalArtifact`** is what an ALLOW is worth: the exact calls, with their arguments, hashed, with a two-minute expiry. Not a permission — a transaction, described precisely enough to be rebuilt byte for byte.
 
-```
-Wayfinder Path ──proposal──► policy engine ──artifact──► executor ──► KeeperHub ──► Aave V3
-(no secrets)                 (pure, no I/O)             (asserts hash,
-                                                         then sends)
+### What the executor does with an artifact
+
+```mermaid
+sequenceDiagram
+    participant E as Executor
+    participant J as Journal
+    participant K as KeeperHub
+    E->>E: verifyArtifact: hash equals the published hash, not expired
+    loop each leg — approve, then supply
+        E->>J: latest entry for this key?
+        alt already settled
+            E->>E: reuse the receipt, send nothing
+        else new leg
+            E->>K: execute_contract_call, simulate: true
+            K-->>E: success, wouldRevert: false
+            E->>J: prepared
+            E->>K: execute_contract_call, idempotency_key
+            K-->>E: executionId
+            E->>J: sent
+            E->>K: get_direct_execution_status, bounded backoff
+            K-->>E: completed, transactionHash
+            E->>J: settled
+        end
+    end
+    E->>K: aave-v3/get-user-reserve-data
+    E->>E: aToken balanceOf over RPC; compare the delta from both
 ```
 
-Two properties carry the design.
+### Two properties carry the design
 
 **The thing simulated is the thing sent.** The executor rebuilds its KeeperHub request from the artifact and refuses before building anything if the artifact does not hash to the value the decision published. [Three tests](v2/packages/keeperhub/src/execute.test.ts) edit a settled artifact in transit — beneficiary, approval amount, chain — and assert zero calls to KeeperHub.
 
 **The idempotency key is a pure function of the proposal and the policy.** `mirsad:<hash(intentHash, policyHash)>:<leg>`. The same proposal under the same policy gets the same key on any machine, after any crash, without consulting stored state; a different proposal gets a different key, because the intent hash covers every argument that reaches the chain. Not the artifact hash — an artifact carries `issuedAt`, and a process that crashed and decided the same proposal again would mint a new one. KeeperHub's own guidance is to keep the key and rebuild the body when an outcome is unknown, since rotating it escapes the in-flight guard and can broadcast twice. Deriving the key from the inputs that determine the body makes that the only reachable behaviour.
 
-Some smaller decisions that follow from those:
+### Smaller decisions that follow
 
 - MIRSAD **derives** the ERC-20 approval, it does not accept one. An unlimited allowance is not something a planner can ask for; only a large *amount* could reach one, and the cap catches that.
 - ABIs are pinned in the executor, not carried in the artifact. An ABI supplied by a planner is a planner deciding what a function means.
@@ -116,15 +168,30 @@ The executor's outcomes separate *did not execute* from *do not know*. Collapsin
 | `rejected` | Definite refusal after a clean preflight, or settled as failed | A person decides |
 | `unconfirmed` | 5xx or dropped socket *on* the send; status never settled | Same key; `reconcile` |
 
-Success additionally requires a **postcondition**: the aToken balance is read before and after from two sources that share no code path — Aave's reserve data through KeeperHub, and `balanceOf` on the aToken over plain RPC. A settled receipt with an unmoved position is `executed` with `postcondition.ok: false`, and a disagreement between the two readings is resolved against us.
+### The journal, and what a crash leaves behind
 
-A journal is written as `prepared` before any send, so a process killed between persisting and broadcasting leaves proof that a broadcast may have happened. `pnpm mirsad reconcile` asks KeeperHub about anything unfinished and never sends; re-running `execute` with the same proposal resumes under the same key and skips legs that already settled.
+A journal is written as `prepared` before any send, so a process killed between persisting and broadcasting leaves proof that a broadcast may have happened.
 
-The key is derived from the proposal and the policy, not from the artifact. An artifact carries `issuedAt`, so a process that crashed and decided the same proposal again would mint a new artifact and a new key, and its resume would be a second send. That was the design until the first crash test; the table above is the version after.
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> prepared: preflight passed, journal written
+    prepared --> sent: broadcast accepted, executionId
+    sent --> settled: receipt
+    settled --> [*]
+    prepared --> prepared: crash here — resume re-sends under the same key, no second preflight
+    sent --> settled: crash here — reconcile asks KeeperHub, never sends
+```
 
-Crashes are injected, not hoped for: `MIRSAD_FAULT=after-prepared` or `after-sent` exits the process at that point. Nothing in production sets it. The two killed runs in the table used it.
+`pnpm mirsad reconcile` asks KeeperHub about anything unfinished and never sends; re-running `execute` with the same proposal resumes under the same key and skips legs that already settled. Both crash edges in the diagram were exercised on chain — the two killed runs in the Sepolia table.
 
-Forty-three tests cover this: revert, 503, 429 with `Retry-After`, 409 conflict, dropped socket, never-settles, settled-failed, a crash between prepare and send, an already-settled leg, and a rebuilt request that no longer matches the key's bound body.
+Crashes are injected, not hoped for: `MIRSAD_FAULT=after-prepared` or `after-sent` exits the process at that point. Nothing in production sets it.
+
+### Postcondition
+
+Success additionally requires the position to have moved. The aToken balance is read before and after from two sources that share no code path — Aave's reserve data through KeeperHub, and `balanceOf` on the aToken over plain RPC. A settled receipt with an unmoved position is `executed` with `postcondition.ok: false`, and a disagreement between the two readings is resolved against us. Two units of shortfall are tolerated, because Aave's scaled-balance arithmetic rounds down; two thousand are not.
+
+Forty-three tests cover this section: revert, 503, 429 with `Retry-After`, 409 conflict, dropped socket, never-settles, settled-failed, a crash between prepare and send, an already-settled leg, a rebuilt request that no longer matches the key's bound body, and the same proposal decided again after a crash landing on the same key.
 
 ---
 
@@ -162,6 +229,13 @@ pnpm mirsad reconcile                     # ask KeeperHub about anything unfinis
 
 Tests: `pnpm v2:test` — 108 across the policy engine, the executor and the planner boundary, none of which touch the network.
 
+| Package | Holds |
+|---|---|
+| [`v2/packages/policy`](v2/packages/policy) | canonical encoding, the three schemas, the five rules, the Aave pack |
+| [`v2/packages/keeperhub`](v2/packages/keeperhub) | MCP transport, artifact-bound executor, journal, reconcile, postcondition readers |
+| [`v2/packages/agent`](v2/packages/agent) | planner boundary with the scrubbed environment, the pipeline, the CLI |
+| [`v2/integrations/wayfinder`](v2/integrations/wayfinder) | the Wayfinder Path |
+
 ---
 
 ## KeeperHub surfaces used
@@ -172,8 +246,8 @@ Tests: `pnpm v2:test` — 108 across the policy engine, the executor and the pla
 | `execute_contract_call` with `simulate: true`, then `idempotency_key` | [`execute.ts`](v2/packages/keeperhub/src/execute.ts) — the documented safe-write sequence, with the hash check in front of it |
 | `get_direct_execution_status` | polling with bounded backoff; `reconcile` |
 | `execute_protocol_action` → `aave-v3/get-user-reserve-data` | one of the two independent postcondition readers |
-| Gas sponsorship | every transaction above |
-| Marketplace | `mirsad-safe-guard`, listed at $0.05/call in v1 and still resolvable |
+| Gas sponsorship | every transaction above, on three chains |
+| Marketplace, x402 | `mirsad-safe-guard`, listed at $0.05/call in v1; still answers a `402` with a Base USDC challenge |
 
 Why `execute_contract_call` and not the `aave-v3/supply` protocol action: the protocol action has no dry-run — its own description says *"writes sign and broadcast"* — so nothing routed through it can be preflighted, and MIRSAD's entire claim is that the preflighted bytes are the sent bytes. The raw ABI route is the one that can make that promise.
 
