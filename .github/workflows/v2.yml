@@ -1,0 +1,25 @@
+name: v2
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      # v2 only. v1 under packages/ pulls Hardhat and its native builds, which
+      # this workflow has no reason to compile.
+      - run: pnpm install --frozen-lockfile --filter "@mirsad/policy..." --filter "@mirsad/keeperhub..." --filter "@mirsad/agent..."
+      - run: pnpm v2:typecheck
+      - run: pnpm v2:build
+      - run: pnpm v2:test

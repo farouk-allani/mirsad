@@ -9,6 +9,14 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/farouk-allani/mirsad/actions/workflows/v2.yml"><img src="https://github.com/farouk-allani/mirsad/actions/workflows/v2.yml/badge.svg" alt="v2 tests"></a>
+  <a href="https://basescan.org/tx/0x5a1eb2d97d576a6c4b65674a0c94d0af01a17ca9abd00ac1449a4cbc0fcb0345"><img src="https://img.shields.io/badge/mainnet-Base-0052FF" alt="Base mainnet"></a>
+  <a href="https://keeperhub.com"><img src="https://img.shields.io/badge/executes%20via-KeeperHub-1a1a1a" alt="KeeperHub"></a>
+  <a href="https://github.com/KeeperHub/keeperhub/pull/2475"><img src="https://img.shields.io/badge/upstream-PR%20%232475-8250df" alt="upstream PR"></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
+</p>
+
+<p align="center">
   <a href="https://youtu.be/PycnVV03wWM">Three-minute demo</a> ·
   <a href="https://basescan.org/tx/0x5a1eb2d97d576a6c4b65674a0c94d0af01a17ca9abd00ac1449a4cbc0fcb0345">Mainnet transaction</a> ·
   <a href="https://github.com/KeeperHub/keeperhub/pull/2475">Upstream PR</a> ·
