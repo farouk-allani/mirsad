@@ -6,6 +6,8 @@ KeeperHub's pitch for the agent economy is that an agent composes a workflow, *y
 
 > `مِرْصاد` — the watchpost; the place from which one lies in wait.
 
+**Three-minute demo:** https://youtu.be/PycnVV03wWM — the four proposals, the mainnet execution, and a process killed mid-broadcast and resumed without a duplicate.
+
 ---
 
 ## The claim, demonstrated
