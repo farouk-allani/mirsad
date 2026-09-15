@@ -20,6 +20,7 @@ jobs:
       # v2 only. v1 under packages/ pulls Hardhat and its native builds, which
       # this workflow has no reason to compile.
       - run: pnpm install --frozen-lockfile --filter "@mirsad/policy..." --filter "@mirsad/keeperhub..." --filter "@mirsad/agent..."
-      - run: pnpm v2:typecheck
+      # Build in topological order first: keeperhub and agent resolve their
+      # workspace dependencies through dist/, and tsc type-checks as it emits.
       - run: pnpm v2:build
       - run: pnpm v2:test
